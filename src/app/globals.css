@@ -3,114 +3,156 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 51, 51, 51;
-  --background-start-rgb: 255, 255, 255;
-  --background-end-rgb: 255, 255, 255;
-  --primary-color: 30, 115, 190;
-  --primary-light: 235, 245, 255;
-  --secondary-color: 22, 163, 74;
-  --accent-color: 244, 63, 94;
-  --card-bg: 255, 255, 255;
-  --card-border: 235, 235, 235;
-  --header-bg: 30, 115, 190;
-  --sidebar-bg: 255, 255, 255;
-  --sidebar-active: 235, 245, 255;
-  --sidebar-text: 75, 75, 75;
+  /* Light Mode */
+  --foreground-rgb: 55, 65, 81; /* dark-gray-700 */
+  --background-start-rgb: 249, 250, 251; /* gray-50 */
+  --background-end-rgb: 243, 244, 246;   /* gray-100 */
+  
+  --primary-color: 59, 130, 246;  /* blue-500 */
+  --primary-light: 219, 234, 254; /* blue-100 */
+  --primary-dark: 37, 99, 235;   /* blue-600 */
+  
+  --secondary-color: 16, 185, 129; /* emerald-500 */
+  --secondary-light: 167, 243, 208; /* emerald-100 */
+  --secondary-dark: 5, 150, 105;    /* emerald-600 */
+
+  --accent-color: 239, 68, 68; /* red-500 for destructive actions */
+
+  --card-bg: 255, 255, 255; /* white */
+  --card-border: 229, 231, 235; /* gray-200 */
+  
+  --header-bg: 255, 255, 255; /* white */
+  --header-text: 55, 65, 81; /* dark-gray-700 */
+  --header-border: 229, 231, 235; /* gray-200 */
+
+  --sidebar-bg: 249, 250, 251; /* gray-50 */
+  --sidebar-text: 75, 85, 99; /* gray-600 */
+  --sidebar-active-bg: 219, 234, 254; /* blue-100 */
+  --sidebar-active-text: 37, 99, 235;   /* blue-600 */
+  --sidebar-hover-bg: 243, 244, 246; /* gray-100 */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 225, 225, 225;
-    --background-start-rgb: 40, 40, 40;
-    --background-end-rgb: 40, 40, 40;
-    --primary-color: 30, 115, 190;
-    --primary-light: 20, 60, 120;
-    --secondary-color: 34, 197, 94;
-    --accent-color: 244, 63, 94;
-    --card-bg: 50, 50, 50;
-    --card-border: 70, 70, 70;
-    --header-bg: 30, 115, 190;
-    --sidebar-bg: 40, 40, 40;
-    --sidebar-active: 20, 60, 120;
-    --sidebar-text: 200, 200, 200;
+    /* Dark Mode */
+    --foreground-rgb: 209, 213, 219; /* gray-300 */
+    --background-start-rgb: 17, 24, 39;  /* gray-900 */
+    --background-end-rgb: 31, 41, 55;    /* gray-800 */
+    
+    --primary-color: 96, 165, 250;  /* blue-400 */
+    --primary-light: 30, 58, 138;   /* blue-900 */
+    --primary-dark: 59, 130, 246;   /* blue-500 */
+    
+    --secondary-color: 52, 211, 153; /* emerald-400 */
+    --secondary-light: 6, 78, 59;    /* emerald-900 */
+    --secondary-dark: 16, 185, 129;   /* emerald-500 */
+
+    --accent-color: 248, 113, 113; /* red-400 */
+
+    --card-bg: 31, 41, 55; /* gray-800 */
+    --card-border: 55, 65, 81; /* gray-700 */
+    
+    --header-bg: 31, 41, 55;    /* gray-800 */
+    --header-text: 229, 231, 235; /* gray-200 */
+    --header-border: 55, 65, 81; /* gray-700 */
+
+    --sidebar-bg: 17, 24, 39;  /* gray-900 */
+    --sidebar-text: 156, 163, 175; /* gray-400 */
+    --sidebar-active-bg: 30, 58, 138;   /* blue-900 */
+    --sidebar-active-text: 96, 165, 250;  /* blue-400 */
+    --sidebar-hover-bg: 31, 41, 55; /* gray-800 */
   }
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-start-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* 應用布局 */
+/* App Layout */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: rgb(var(--background-start-rgb));
 }
 
 .app-header {
   background-color: rgb(var(--header-bg));
-  color: white;
-  padding: 0.75rem 1.5rem;
+  color: rgb(var(--header-text));
+  padding: 0 1.5rem; /* Removed top/bottom padding to align items better */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 60px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  height: 64px; /* Increased height slightly */
+  border-bottom: 1px solid rgb(var(--header-border));
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02);
 }
 
 .app-header-title {
-  font-size: 1.25rem;
+  font-size: 1.125rem; /* Slightly smaller */
   font-weight: 600;
 }
 
 .app-search {
-  background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-  padding: 0.5rem 1rem;
-  color: white;
-  border: none;
-  width: 300px;
+  background-color: rgb(var(--background-start-rgb));
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  color: rgb(var(--foreground-rgb));
+  border: 1px solid rgb(var(--card-border));
+  width: 280px;
+  font-size: 0.875rem;
 }
 
 .app-search::placeholder {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgb(var(--sidebar-text)); /* Using sidebar-text for placeholder */
 }
 
 .app-body {
   display: flex;
   flex: 1;
+  overflow: hidden; /* Prevent double scrollbars */
 }
 
 .app-sidebar {
-  width: 220px;
+  width: 240px; /* Standard sidebar width */
   background-color: rgb(var(--sidebar-bg));
-  border-right: 1px solid rgb(var(--card-border));
+  border-right: 1px solid rgb(var(--header-border)); /* Use header-border for consistency */
   flex-shrink: 0;
+  overflow-y: auto;
 }
 
 .sidebar-menu {
-  padding: 1rem 0;
+  padding: 0.75rem;
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
-  padding: 0.75rem 1.5rem;
+  padding: 0.625rem 0.75rem; /* Adjusted padding */
   color: rgb(var(--sidebar-text));
   text-decoration: none;
   font-weight: 500;
-  transition: background-color 0.2s;
+  border-radius: 6px; /* Rounded corners for items */
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem; /* Space between items */
 }
 
 .sidebar-item:hover {
-  background-color: rgba(var(--primary-color), 0.05);
+  background-color: rgb(var(--sidebar-hover-bg));
+  color: rgb(var(--foreground-rgb)); /* Darker text on hover */
 }
 
 .sidebar-item.active {
-  background-color: rgb(var(--sidebar-active));
-  color: rgb(var(--primary-color));
+  background-color: rgb(var(--sidebar-active-bg));
+  color: rgb(var(--sidebar-active-text));
   font-weight: 600;
 }
 
@@ -121,68 +163,79 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-section-title {
+  padding: 0.75rem 0.75rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: rgb(var(--sidebar-text));
+  opacity: 0.7;
 }
 
 .app-content {
   flex: 1;
-  padding: 1.5rem;
+  padding: 1.5rem; /* Standard padding */
   overflow-y: auto;
   background-color: rgb(var(--background-start-rgb));
 }
 
 .content-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: 1.75rem; /* Larger content titles */
+  font-weight: 700; /* Bolder */
+  margin-bottom: 0.75rem;
+  color: rgb(var(--foreground-rgb));
 }
 
 .content-description {
-  color: rgba(var(--foreground-rgb), 0.7);
+  color: rgb(var(--sidebar-text)); /* Using sidebar-text for softer description */
   margin-bottom: 1.5rem;
+  font-size: 0.9375rem;
 }
 
-/* 自定義卡片樣式 */
+/* Custom Card Style */
 .jira-card {
   background-color: rgb(var(--card-bg));
   border: 1px solid rgb(var(--card-border));
-  border-radius: 0.25rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.2s ease-in-out;
+  border-radius: 8px; /* More rounded cards */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03), 0 1px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px 0 rgba(0, 0, 0, 0.02); /* Softer shadow */
 }
 
-.jira-card:hover {
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
-}
-
-/* 狀態標籤樣式 */
+/* Status Badge Styles */
 .status-badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px; /* Pill shape */
   font-size: 0.75rem;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.25;
 }
 
+/* More subtle status colors */
 .status-todo {
-  background-color: rgb(254, 240, 138);
-  color: rgb(161, 98, 7);
+  background-color: rgb(254, 243, 199); /* yellow-100 */
+  color: rgb(180, 83, 9); /* yellow-700 */
 }
 
 .status-inprogress {
-  background-color: rgb(186, 230, 253);
-  color: rgb(3, 105, 161);
+  background-color: rgb(199, 210, 254); /* indigo-100 */
+  color: rgb(67, 56, 202); /* indigo-700 */
 }
 
 .status-done {
-  background-color: rgb(187, 247, 208);
-  color: rgb(4, 108, 78);
+  background-color: rgb(187, 247, 208); /* green-100 */
+  color: rgb(4, 120, 87); /* green-700 */
 }
 
 .status-blocked {
-  background-color: rgb(254, 202, 202);
-  color: rgb(185, 28, 28);
+  background-color: rgb(254, 202, 202); /* red-100 */
+  color: rgb(185, 28, 28); /* red-700 */
 }
 
-/* 響應式布局 */
+/* Responsive Layout */
 @media (max-width: 768px) {
   .app-body {
     flex-direction: column;
@@ -191,10 +244,68 @@ body {
   .app-sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid rgb(var(--card-border));
+    border-bottom: 1px solid rgb(var(--header-border));
   }
 
   .app-search {
-    width: 200px;
+    width: auto; /* Allow search to shrink */
+    flex-grow: 1;
+    margin-left: 0.75rem;
   }
+  .app-header-title {
+    display: none; /* Hide title on small screens to save space for search */
+  }
+}
+
+/* General button style */
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  background-color: rgb(var(--primary-color));
+  color: white;
+}
+.btn-primary:hover {
+  background-color: rgb(var(--primary-dark));
+  box-shadow: 0 2px 8px -1px rgba(var(--primary-color), 0.4);
+}
+.btn-primary:disabled {
+  background-color: rgb(var(--primary-light));
+  color: rgb(var(--primary-dark));
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: rgb(var(--secondary-color));
+  color: white;
+}
+.btn-secondary:hover {
+  background-color: rgb(var(--secondary-dark));
+  box-shadow: 0 2px 8px -1px rgba(var(--secondary-color), 0.4);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: rgb(var(--primary-color));
+  border: 1px solid rgb(var(--primary-color));
+}
+.btn-ghost:hover {
+  background-color: rgb(var(--primary-light));
+}
+
+.btn-danger {
+  background-color: rgb(var(--accent-color));
+  color: white;
+}
+.btn-danger:hover {
+  background-color: rgb(185, 28, 28); /* Slightly darker red */
 }

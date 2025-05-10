@@ -2,463 +2,237 @@
 
 import { useState, useEffect } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
-import { jiraConfigAtom, currentPageIdAtom, searchParamsAtom, currentPageAtom } from '@/store/jiraStore';
-import { useJiraIssues } from '@/hooks/useJira';
+import { jiraConfigAtom, currentPageIdAtom, currentPageAtom } from '@/store/jiraStore';
 import Link from 'next/link';
 import { JiraIssue } from '@/types/jira';
 import { formatDistanceToNow } from 'date-fns';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
-import { callJiraApi, createJiraService } from '@/services/jiraService';
+import { createJiraService } from '@/services/jiraService';
+
+// Placeholder icons from globals.css or a component library
+const LoadingIcon = () => <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-color mx-auto"></div>;
+const ErrorIcon = () => <svg className="w-12 h-12 text-accent-color mx-auto mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>;
+const EmptyIcon = () => <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>;
 
 export default function DashboardPage() {
-  const config = useAtomValue(jiraConfigAtom);
-  const [currentPageId, setCurrentPageId] = useAtom(currentPageIdAtom);
-  const [searchParams, setSearchParams] = useAtom(searchParamsAtom);
-  const [currentPage] = useAtom(currentPageAtom);
-  const { data, error, isLoading, mutate } = useJiraIssues();
-  const [showDebug, setShowDebug] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const searchParamsNav = useSearchParams();
-  const pageId = searchParamsNav.get('pageId');
+  const pageIdFromUrl = searchParamsNav.get('pageId');
   
-  // Check if there's any page and set current page if not set
-  useEffect(() => {
-    if (config.pages.length > 0 && !currentPageId) {
-      setCurrentPageId(config.pages[0].id);
-    }
-  }, [config.pages, currentPageId, setCurrentPageId]);
+  const jiraConfig = useAtomValue(jiraConfigAtom);
+  const [currentPageId, setCurrentPageId] = useAtom(currentPageIdAtom);
+  const [currentPageDetails] = useAtom(currentPageAtom); // This atom is derived from currentPageId and jiraConfig
+  
+  const [startAt, setStartAt] = useState(0);
+  const issuesPerPage = 20; // Or make this configurable
 
-  // 如果URL中有pageId參數，則更新當前選中的頁面
+  // Effect to sync currentPageId with URL, and reset pagination
   useEffect(() => {
-    if (pageId && pageId !== currentPageId) {
-      setCurrentPageId(pageId);
+    if (pageIdFromUrl && pageIdFromUrl !== currentPageId) {
+      setCurrentPageId(pageIdFromUrl);
+      setStartAt(0); 
+    } else if (!pageIdFromUrl && jiraConfig.pages.length > 0 && !currentPageId) {
+      // If no pageId in URL, but pages exist and no currentPageId is set, default to first page
+      // This might be handled by Navigation component too, ensuring currentPageIdAtom is set.
+      // For robustness, we can set it here if it's still null.
+      // setCurrentPageId(jiraConfig.pages[0].id);
+      // setStartAt(0);
+    } else if (!pageIdFromUrl && !currentPageId && jiraConfig.pages.length === 0){
+      // No pages configured, currentPageId will be null, handled by return below
     }
-  }, [pageId, currentPageId, setCurrentPageId]);
+  }, [pageIdFromUrl, currentPageId, setCurrentPageId, jiraConfig.pages]);
 
-  // Current page
-  const currentPageDashboard = config.pages.find(page => page.id === currentPageId);
-  
-  // Handle page change
-  const handlePageChange = (pageId: string) => {
-    setCurrentPageId(pageId);
-    setSearchParams(prev => ({ ...prev, startAt: 0 }));
-  };
-  
-  // Handle pagination
-  const handleNextPage = () => {
-    if (data && data.startAt + data.maxResults < data.total) {
-      setSearchParams(prev => ({ 
-        ...prev, 
-        startAt: prev.startAt + prev.maxResults 
-      }));
-    }
-  };
-  
-  const handlePrevPage = () => {
-    if (searchParams.startAt > 0) {
-      setSearchParams(prev => ({ 
-        ...prev, 
-        startAt: Math.max(0, prev.startAt - prev.maxResults) 
-      }));
-    }
-  };
-  
-  // Formatter for date fields
+  const { data, error, isLoading, mutate } = useSWR(
+    currentPageDetails && jiraConfig.baseUrl && currentPageDetails.jql
+      ? [`jira-search`, currentPageDetails.jql, jiraConfig, startAt, issuesPerPage] 
+      : null,
+    async ([_, jql, config, currentStartAt, currentMaxResults]) => {
+      const service = createJiraService(config);
+      return service.searchIssues(jql, currentStartAt, currentMaxResults);
+    },
+    { revalidateOnFocus: true, keepPreviousData: true } // keepPreviousData for smoother pagination
+  );
+
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
-      return formatDistanceToNow(date, { addSuffix: true });
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
     } catch (e) {
+      console.warn("Error formatting date:", dateString, e);
       return dateString;
     }
   };
   
-  // Get status badge class
-  const getStatusClass = (status: string) => {
-    const statusLower = status.toLowerCase();
-    if (statusLower.includes('to do') || statusLower.includes('open') || statusLower.includes('new')) {
-      return 'status-todo';
-    } else if (statusLower.includes('progress') || statusLower.includes('review')) {
-      return 'status-inprogress';
-    } else if (statusLower.includes('done') || statusLower.includes('closed') || statusLower.includes('resolved')) {
-      return 'status-done';
-    } else if (statusLower.includes('block') || statusLower.includes('impediment')) {
-      return 'status-blocked';
-    }
-    return 'bg-gray-100 text-gray-800';
+  const getStatusClass = (statusCategoryKey?: string, statusName?: string) => {
+    if (statusCategoryKey === 'done') return 'status-done';
+    if (statusCategoryKey === 'indeterminate') return 'status-inprogress';
+    if (statusCategoryKey === 'new' || statusCategoryKey === 'undefined') return 'status-todo'; // 'undefined' for some Jira Cloud statuses
+    // Fallback for specific names if category is not standard
+    if (statusName?.toLowerCase().includes('block')) return 'status-blocked';
+    return 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200'; // Default fallback
   };
-  
-  // Render an issue row
-  const renderIssueRow = (issue: JiraIssue) => {
-    const { fields } = issue;
-    
-    // 防止空值
-    if (!fields) {
-      console.warn(`Issue ${issue.key} has no fields`, issue);
-      return null;
-    }
-    
-    const statusName = fields.status?.name || 'Unknown';
-    const statusClass = getStatusClass(statusName);
-    
+
+  // Initial state: No pages configured at all
+  if (jiraConfig.pages.length === 0) {
     return (
-      <tr key={issue.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 border-b">
-        <td className="px-4 py-3">
-          <Link 
-            href={`/dashboard/issue/${issue.key}`}
-            className="text-blue-600 hover:underline flex items-center"
-          >
-            {fields.issuetype && (
-              <img 
-                src={fields.issuetype.iconUrl} 
-                alt={fields.issuetype.name} 
-                className="w-4 h-4 mr-2" 
-              />
-            )}
-            {issue.key}
-          </Link>
-        </td>
-        <td className="px-4 py-3">
-          <Link 
-            href={`/dashboard/issue/${issue.key}`}
-            className="hover:text-blue-600 hover:underline font-medium"
-          >
-            {fields.summary}
-          </Link>
-        </td>
-        <td className="px-4 py-3">
-          <span className={`status-badge ${statusClass}`}>
-            {statusName}
-          </span>
-        </td>
-        <td className="px-4 py-3">
-          {fields.assignee ? (
-            <div className="flex items-center">
-              {fields.assignee.avatarUrls && (
-                <img 
-                  src={fields.assignee.avatarUrls['24x24']} 
-                  alt={fields.assignee.displayName}
-                  className="w-5 h-5 rounded-full mr-2" 
-                />
-              )}
-              <span>{fields.assignee.displayName}</span>
-            </div>
-          ) : (
-            <span className="text-gray-400">未分配</span>
-          )}
-        </td>
-        <td className="px-4 py-3 text-sm text-gray-500">
-          {formatDate(fields.updated)}
-        </td>
-      </tr>
-    );
-  };
-  
-  // If no configuration is set
-  if (config.pages.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <h1 className="text-3xl font-bold mb-6">No Pages Configured</h1>
-        <p className="mb-4">You need to configure at least one page to view the dashboard.</p>
-        <Link
-          href="/config"
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
-        >
-          Go to Configuration
+      <div className="text-center py-10">
+        <EmptyIcon />
+        <h2 className="content-title text-xl">尚未設定查詢頁面</h2>
+        <p className="content-description">您需要先設定至少一個查詢頁面才能查看儀表板。</p>
+        <Link href="/config" className="btn btn-primary mt-4">
+          前往設定頁面
         </Link>
       </div>
     );
   }
-  
-  // 如果沒有選擇頁面，顯示頁面選擇界面
-  if (!currentPage) {
+
+  // State: Pages configured, but no specific page selected (e.g. /dashboard direct access)
+  if (!currentPageDetails) {
     return (
-      <div className="p-6">
-        <h1 className="content-title">Jira儀表板</h1>
-        <p className="content-description mb-6">請從左側選擇一個查詢頁面或創建新頁面</p>
+      <div className="text-center py-10">
+        <EmptyIcon />
+        <h2 className="content-title text-xl">請選擇一個查詢</h2>
+        <p className="content-description">請從左側側邊欄選擇一個 Jira 查詢頁面來顯示相關問題。</p>
+        {/* Optionally, show a list of available pages here as well, or guide to sidebar more explicitly */}
       </div>
     );
   }
 
-  // 錯誤處理
-  if (error) {
-    return (
-      <div className="p-6">
-        <h1 className="content-title">{currentPage.title}</h1>
-        <div className="bg-red-100 border border-red-300 text-red-700 p-4 rounded mt-4">
-          <div className="font-semibold mb-2">獲取Jira數據時出錯</div>
-          <div className="text-sm">{error.message || '未知錯誤'}</div>
+  // Main content rendering logic for a selected page
+  const renderContent = () => {
+    if (isLoading && !data) { // Show full page loader only on initial load or when JQL changes
+      return (
+        <div className="text-center py-20">
+          <LoadingIcon />
+          <p className="mt-3 text-gray-600 dark:text-gray-400">正在載入問題...</p>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  // 加載中的顯示
-  if (isLoading) {
-    return (
-      <div className="p-6">
-        <h1 className="content-title">{currentPage.title}</h1>
-        <div className="animate-pulse mt-6">
-          <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-          <div className="h-32 bg-gray-200 rounded mb-4"></div>
-          <div className="h-32 bg-gray-200 rounded mb-4"></div>
-        </div>
-      </div>
-    );
-  }
-
-  // 數據為空的情況
-  if (!data || !data.issues || data.issues.length === 0) {
-    return (
-      <div className="p-6">
-        <h1 className="content-title">{currentPage.title}</h1>
-        <p className="content-description">{currentPage.description}</p>
-        <div className="jira-card p-6 mt-4 text-center">
-          <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
-          </svg>
-          <p>沒有符合查詢條件的結果</p>
-          <div className="mt-2 text-sm text-gray-500">JQL: {currentPage.jql}</div>
-        </div>
-      </div>
-    );
-  }
-  
-  return (
-    <div className="container mx-auto bg-white">
-      {/* Header */}
-      <div className="py-4 px-4 mb-4 border-b flex justify-between items-center bg-white dark:bg-gray-800 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Jira Dashboard</h1>
-        <div className="flex space-x-3">
-          <button
-            onClick={() => mutate()}
-            className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors flex items-center"
-            style={{ backgroundColor: 'rgb(var(--primary-color))' }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-            </svg>
-            重新整理
-          </button>
-          
-          <Link
-            href="/config"
-            className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 dark:text-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-            </svg>
-            設定
-          </Link>
-          
-          <button
-            onClick={() => setShowDebug(!showDebug)}
-            className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-            </svg>
+    if (error) {
+      return (
+        <div className="jira-card p-6 text-center">
+          <ErrorIcon />
+          <h3 className="text-lg font-semibold text-accent-color mb-2">載入 Jira 資料時發生錯誤</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{error.message || '未知的網路錯誤，請檢查您的 Jira 連線設定或網路狀態。'}</p>
+          <button onClick={() => mutate()} className="btn btn-primary">
+            重試
           </button>
         </div>
-      </div>
-      
-      {/* Main Content with Sidebar */}
-      <div className="layout-container px-4 mb-8 bg-white">
-        {/* Sidebar with Page Tabs */}
-        <div className={`sidebar bg-white dark:bg-gray-800 rounded-lg jira-card ${isSidebarOpen ? '' : 'hidden md:block'}`}>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">頁面</h2>
-            <button 
-              className="md:hidden text-gray-600 dark:text-gray-400"
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
-          </div>
-          
-          <div className="space-y-1">
-            {config.pages.map(page => (
-              <button
-                key={page.id}
-                onClick={() => handlePageChange(page.id)}
-                className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                  currentPageId === page.id
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium'
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
+      );
+    }
+
+    if (!data || !data.issues || data.issues.length === 0) {
+      return (
+        <div className="jira-card p-8 text-center">
+          <EmptyIcon />
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">找不到相關問題</h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">目前的 JQL 查詢沒有返回任何結果。</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 break-all">JQL: <code className="bg-gray-100 dark:bg-gray-700 p-1 rounded">{currentPageDetails.jql}</code></p>
+        </div>
+      );
+    }
+
+    // Issues table is rendered if data is available
+    return (
+      <div className="jira-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-700/50">
+              <tr>
+                {/* Define columns based on available data or configuration */}
+                {['Key', 'Summary', 'Status', 'Assignee', 'Priority', 'Updated'].map(header => (
+                  <th key={header} className="px-4 py-3 font-medium text-gray-600 dark:text-gray-300 text-left whitespace-nowrap">{header}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-card-border">
+              {data.issues.map((issue: JiraIssue) => (
+                <tr key={issue.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <Link href={`/dashboard/issue/${issue.key}`} className="flex items-center text-primary-color hover:underline">
+                      {issue.fields.issuetype?.iconUrl && <img src={issue.fields.issuetype.iconUrl} alt={issue.fields.issuetype.name || 'type'} className="w-4 h-4 mr-1.5 flex-shrink-0" />}
+                      {issue.key}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg truncate">
+                    <Link href={`/dashboard/issue/${issue.key}`} title={issue.fields.summary} className="hover:underline">
+                      {issue.fields.summary}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className={`status-badge ${getStatusClass(issue.fields.status?.statusCategory?.key, issue.fields.status?.name)}`}>
+                      {issue.fields.status?.name || 'N/A'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {issue.fields.assignee ? (
+                      <div className="flex items-center">
+                        {issue.fields.assignee.avatarUrls?.['24x24'] && <img src={issue.fields.assignee.avatarUrls['24x24']} alt={issue.fields.assignee.displayName} className="w-5 h-5 rounded-full mr-2 flex-shrink-0" />}
+                        <span className="truncate">{issue.fields.assignee.displayName}</span>
+                      </div>
+                    ) : <span className="text-gray-400 dark:text-gray-500">未指派</span>}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    {issue.fields.priority ? (
+                      <div className="flex items-center">
+                        {typeof issue.fields.priority === 'object' && issue.fields.priority.iconUrl && <img src={issue.fields.priority.iconUrl} alt={issue.fields.priority.name || 'priority'} className="w-4 h-4 mr-1.5 flex-shrink-0"/>}
+                        <span>{typeof issue.fields.priority === 'object' ? issue.fields.priority.name : String(issue.fields.priority)}</span>
+                      </div>
+                    ) : <span className="text-gray-400 dark:text-gray-500">-</span>}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">{issue.fields.updated ? formatDate(issue.fields.updated) : '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Pagination Controls */}
+        {data.total > issuesPerPage && (
+          <div className="p-4 border-t border-card-border flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span className="text-xs text-gray-600 dark:text-gray-400">
+              顯示 {startAt + 1} - {Math.min(startAt + data.issues.length, data.total)} / 共 {data.total} 個結果
+            </span>
+            <div className="space-x-2">
+              <button 
+                onClick={() => setStartAt(prev => Math.max(0, prev - issuesPerPage))}
+                disabled={startAt === 0 || (isLoading && !!data) }
+                className="btn btn-ghost py-1.5 px-3 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <div className="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 mr-2 ${currentPageId === page.id ? 'text-blue-500' : 'text-gray-400'}`} viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z" />
-                    <path d="M3 8a2 2 0 012-2h2a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-                  </svg>
-                  <span>{page.title}</span>
-                </div>
-                {page.description && (
-                  <p className="ml-6 text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {page.description}
-                  </p>
-                )}
+                上一頁
               </button>
-            ))}
-          </div>
-          
-          <div className="mt-6 pt-4 border-t">
-            <Link 
-              href="/config"
-              className="flex items-center text-sm text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" />
-              </svg>
-              新增頁面
-            </Link>
-          </div>
-        </div>
-        
-        {/* Mobile Sidebar Toggle */}
-        {!isSidebarOpen && (
-          <button 
-            onClick={() => setIsSidebarOpen(true)} 
-            className="fixed bottom-4 left-4 z-10 md:hidden bg-blue-600 text-white rounded-full p-3 shadow-lg"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-            </svg>
-          </button>
-        )}
-        
-        {/* Main Content */}
-        <div className="main-content">
-          {/* Debug Information */}
-          {showDebug && (
-            <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg overflow-auto max-h-96 jira-card">
-              <h2 className="text-lg font-semibold mb-2">Debug Information</h2>
-              <div className="space-y-2">
-                <div>
-                  <strong>Base URL:</strong> {config.baseUrl}
-                </div>
-                <div>
-                  <strong>Current Page:</strong> {currentPage?.title || 'None'} (ID: {currentPageId || 'None'})
-                </div>
-                <div>
-                  <strong>JQL:</strong> <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{currentPage?.jql || 'None'}</code>
-                </div>
-                <div>
-                  <strong>Pagination:</strong> startAt={searchParams.startAt}, maxResults={searchParams.maxResults}
-                </div>
-                <div>
-                  <strong>Response:</strong> {isLoading ? 'Loading...' : error ? `Error: ${error.message}` : data ? `${data.issues?.length || 0} issues of ${data.total || 0} total` : 'No data'}
-                </div>
-                {data && data.issues && data.issues.length > 0 && (
-                  <div>
-                    <strong>Sample Issue:</strong>
-                    <pre className="bg-gray-100 dark:bg-gray-700 p-2 rounded text-xs mt-1 overflow-auto">
-                      {JSON.stringify(data.issues[0], null, 2)}
-                    </pre>
-                  </div>
-                )}
-              </div>
+              <button 
+                onClick={() => setStartAt(prev => prev + issuesPerPage)}
+                disabled={startAt + issuesPerPage >= data.total || (isLoading && !!data)}
+                className="btn btn-ghost py-1.5 px-3 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                下一頁
+              </button>
             </div>
-          )}
-          
-          {/* Current Page Content */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg jira-card mb-5">
-            {currentPage && (
-              <div className="p-4 border-b">
-                <h2 className="text-xl font-semibold">{currentPage.title}</h2>
-                {currentPage.description && (
-                  <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{currentPage.description}</p>
-                )}
-                <div className="text-xs font-mono bg-gray-50 dark:bg-gray-700 p-2 mt-2 rounded border border-gray-100 dark:border-gray-600">
-                  {currentPage.jql}
-                </div>
-              </div>
-            )}
-            
-            {/* Issues Table */}
-            {isLoading ? (
-              <div className="text-center py-20">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">載入中...</p>
-              </div>
-            ) : error ? (
-              <div className="p-4">
-                <div className="bg-red-100 text-red-800 p-4 rounded-lg">
-                  <p className="font-semibold">載入錯誤</p>
-                  <p className="text-sm">{error.message}</p>
-                </div>
-              </div>
-            ) : data && data.issues && data.issues.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gray-50 dark:bg-gray-700 text-left">
-                      <th className="px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Key</th>
-                      <th className="px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Summary</th>
-                      <th className="px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Status</th>
-                      <th className="px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Assignee</th>
-                      <th className="px-4 py-3 font-medium text-gray-600 dark:text-gray-300">Updated</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.issues.map(renderIssueRow)}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="p-6">
-                <div className="bg-yellow-50 text-yellow-800 p-6 rounded-lg text-center">
-                  <p className="text-lg font-medium">No issues found</p>
-                  <p className="mt-2">Try checking these common issues:</p>
-                  <ul className="list-disc list-inside mt-2 text-left max-w-lg mx-auto text-sm">
-                    <li>JQL 語法是否正確? 嘗試在 Jira 中直接運行您的 JQL 查詢。</li>
-                    <li>您是否有權限訪問這些問題? JQL 中指定的項目可能需要特定權限。</li>
-                    <li>檢查 Jira 連接設定是否正確 (正確的 URL、電子郵件和 API 令牌)。</li>
-                    <li>嘗試簡化 JQL，例如使用: <code className="bg-white px-1">project = "項目代碼"</code> 來測試。</li>
-                  </ul>
-                  <div className="mt-4 flex justify-center">
-                    <button
-                      onClick={() => mutate()}
-                      className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
-                    >
-                      重新嘗試
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Pagination */}
-            {data && data.issues && data.issues.length > 0 && (
-              <div className="border-t p-4 flex justify-between items-center">
-                <div className="text-sm text-gray-600">
-                  {`顯示 ${searchParams.startAt + 1} - ${Math.min(searchParams.startAt + (data.issues?.length || 0), data.total)} / 共 ${data.total || 0} 個項目`}
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={handlePrevPage}
-                    disabled={searchParams.startAt === 0}
-                    className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    上一頁
-                  </button>
-                  <button
-                    onClick={handleNextPage}
-                    disabled={!data || searchParams.startAt + data.maxResults >= data.total}
-                    className="px-3 py-1 border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    下一頁
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
+        )}
+      </div>
+    );
+  };
+
+  // Main return for the page, once a currentPageDetails is confirmed
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="content-title">{currentPageDetails.title}</h1>
+        {currentPageDetails.description && 
+          <p className="content-description -mt-2 max-w-3xl">{currentPageDetails.description}</p>}
+        <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <span className="break-all">JQL: <code className="bg-gray-100 dark:bg-gray-700 p-1 rounded text-gray-700 dark:text-gray-200 text-[0.7rem]">{currentPageDetails.jql}</code></span>
+          <button 
+            onClick={() => mutate()} 
+            className="btn btn-ghost py-1 px-2.5 text-xs mt-1 sm:mt-0 flex-shrink-0" 
+            disabled={isLoading && !data} // Only disable on initial hard load
+          >
+            {isLoading && !data ? '載入中...' : '重新整理資料'}
+          </button>
         </div>
       </div>
+      {renderContent()} 
     </div>
   );
 } 

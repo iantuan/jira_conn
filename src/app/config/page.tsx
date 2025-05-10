@@ -9,6 +9,12 @@ import { JiraPage } from '@/types/jira';
 import { v4 as uuidv4 } from 'uuid';
 import JQLHelp from './jql-help';
 
+// Placeholder icons
+const ConnectIcon = () => <svg className="w-4 h-4 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.586 2.586a2 2 0 00-2.828 0L6.172 6.172a4 4 0 00-1.172 2.828V14a2 2 0 002 2h5a2 2 0 002-2V9a4 4 0 00-1.172-2.828L12.586 2.586zM9 12a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" /></svg>;
+const PlusIcon = () => <svg className="w-4 h-4 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" /></svg>;
+const EditIcon = () => <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" /></svg>;
+const DeleteIcon = () => <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>;
+
 export default function ConfigPage() {
   const [config, setConfig] = useAtom(jiraConfigAtom);
   const [showApiToken, setShowApiToken] = useState(false);
@@ -52,10 +58,12 @@ export default function ConfigPage() {
 
   // Delete a page
   const deletePage = (id: string) => {
-    setConfig(prev => ({
-      ...prev,
-      pages: prev.pages.filter(p => p.id !== id)
-    }));
+    if (window.confirm("Are you sure you want to delete this page?")) {
+      setConfig(prev => ({
+        ...prev,
+        pages: prev.pages.filter(p => p.id !== id)
+      }));
+    }
   };
 
   // Initialize new page form
@@ -70,13 +78,14 @@ export default function ConfigPage() {
       sortOrder: 'DESC'
     });
     setIsAddingPage(true);
-    setShowJQLHelp(true); // 自動顯示 JQL 幫助
+    setShowJQLHelp(false);
   };
 
   // Edit existing page
   const handleEditPage = (page: JiraPage) => {
     setEditingPage({ ...page });
     setIsAddingPage(false);
+    setShowJQLHelp(false);
   };
 
   // Apply JQL example
@@ -87,73 +96,37 @@ export default function ConfigPage() {
   };
 
   return (
-    <div className="p-6 bg-white">
+    <div className="space-y-8">
       <h1 className="content-title">系統設定</h1>
-      <p className="content-description mb-6">設定Jira連線和自定義儀表板頁面</p>
+      <p className="content-description">管理您的 Jira 連線設定並客製化您的儀表板查詢頁面。</p>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Configuration</h1>
-          <Link 
-            href="/" 
-            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded"
-          >
-            Back to Home
-          </Link>
+      {/* Jira Connection Settings */}
+      <section className="jira-card">
+        <div className="p-5 border-b border-card-border">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Jira 連線設定</h2>
         </div>
-
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">連線設定</h2>
-          <button 
-            onClick={handleConnectionSubmit}
-            disabled={isLoading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center disabled:opacity-50"
-            style={{ backgroundColor: 'rgb(var(--primary-color))' }}
-          >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                測試中...
-              </>
-            ) : (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M6.672 1.911a1 1 0 10-1.932.518l.259.966a1 1 0 001.932-.518l-.26-.966zM2.429 4.74a1 1 0 10-.517 1.932l.966.259a1 1 0 00.517-1.932l-.966-.26zm8.814-.569a1 1 0 00-1.415-1.414l-.707.707a1 1 0 101.415 1.415l.707-.708zm-7.071 7.072l.707-.707A1 1 0 003.465 9.12l-.708.707a1 1 0 001.415 1.415zm3.2-5.171a1 1 0 00-1.3 1.3l4 10a1 1 0 001.823.075l1.38-2.759 3.018 3.02a1 1 0 001.414-1.415l-3.019-3.02 2.76-1.379a1 1 0 00-.076-1.822l-10-4z" />
-                </svg>
-                測試連線
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Jira Connection Settings */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md mb-8">
-          <h2 className="text-xl font-semibold mb-4">Jira Connection</h2>
+        <form onSubmit={handleConnectionSubmit} className="p-5 space-y-5">
+          <div>
+            <label htmlFor="baseUrl" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Jira 基礎 URL
+            </label>
+            <input
+              type="url"
+              id="baseUrl"
+              value={config.baseUrl}
+              onChange={(e) => updateConnection('baseUrl', e.target.value)}
+              placeholder="https://your-domain.atlassian.net"
+              className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-color focus:border-primary-color dark:bg-gray-700 dark:text-gray-100"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+              請確保 URL 格式為 <code>https://your-domain.atlassian.net</code>（不要在結尾添加斜杠）。
+            </p>
+          </div>
           
-          <form onSubmit={handleConnectionSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label htmlFor="baseUrl" className="block mb-1 font-medium">
-                Jira Base URL
-              </label>
-              <input
-                type="url"
-                id="baseUrl"
-                value={config.baseUrl}
-                onChange={(e) => updateConnection('baseUrl', e.target.value)}
-                placeholder="https://your-domain.atlassian.net"
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                請確保 URL 格式為 <code>https://your-domain.atlassian.net</code>（不要在結尾添加斜杠）
-              </p>
-            </div>
-            
-            <div>
-              <label htmlFor="email" className="block mb-1 font-medium">
-                Email Address
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                電子郵件地址
               </label>
               <input
                 type="email"
@@ -161,12 +134,12 @@ export default function ConfigPage() {
                 value={config.email}
                 onChange={(e) => updateConnection('email', e.target.value)}
                 placeholder="your.email@example.com"
-                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
+                className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-color focus:border-primary-color dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
             
             <div>
-              <label htmlFor="apiToken" className="block mb-1 font-medium">
+              <label htmlFor="apiToken" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 API Token
               </label>
               <div className="flex">
@@ -175,189 +148,179 @@ export default function ConfigPage() {
                   id="apiToken"
                   value={config.apiToken}
                   onChange={(e) => updateConnection('apiToken', e.target.value)}
-                  placeholder="Your Jira API token"
-                  className="w-full p-2 border rounded-l dark:bg-gray-700 dark:border-gray-600"
+                  placeholder="您的 Jira API Token"
+                  className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-l-md shadow-sm focus:ring-primary-color focus:border-primary-color dark:bg-gray-700 dark:text-gray-100"
                 />
                 <button
                   type="button"
                   onClick={() => setShowApiToken(!showApiToken)}
-                  className="bg-gray-200 px-3 border border-l-0 rounded-r"
+                  className="px-3 py-2.5 bg-gray-100 dark:bg-gray-600 border border-l-0 border-gray-300 dark:border-gray-600 rounded-r-md text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500"
                 >
-                  {showApiToken ? 'Hide' : 'Show'}
+                  {showApiToken ? '隱藏' : '顯示'}
                 </button>
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
                 <a 
                   href="https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline"
+                  className="text-primary-color hover:underline"
                 >
-                  How to create an API token
+                  如何建立 API Token
                 </a>
               </p>
             </div>
-            
-            <div>
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Testing...' : 'Test Connection'}
-              </button>
-              
-              {connectionTest && (
-                <div className={`mt-2 p-2 rounded ${connectionTest.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {connectionTest.success 
-                    ? `Connected successfully as ${connectionTest.user?.displayName}`
-                    : `Connection failed: ${connectionTest.error}`
-                  }
-                </div>
-              )}
-            </div>
-          </form>
-        </div>
-
-        {/* Pages Configuration */}
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Dashboard Pages</h2>
-            <button
-              onClick={handleAddPage}
-              className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded"
-            >
-              Add Page
-            </button>
           </div>
           
-          {/* Pages List */}
+          <div className="flex items-center justify-between pt-2">
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={isLoading}
+            >
+              <ConnectIcon />
+              {isLoading ? '測試中...' : '測試並儲存連線'}
+            </button>
+            {connectionTest && (
+              <div className={`text-sm p-2 rounded-md ${connectionTest.success ? 'bg-secondary-light text-secondary-dark' : 'bg-red-100 text-red-700'}`}>
+                {connectionTest.success 
+                  ? `連線成功！ (${connectionTest.user?.displayName})`
+                  : `連線失敗: ${connectionTest.error}`
+                }
+              </div>
+            )}
+          </div>
+        </form>
+      </section>
+
+      {/* Pages Configuration */}
+      <section className="jira-card">
+        <div className="p-5 border-b border-card-border flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">查詢頁面設定</h2>
+          <button
+            onClick={handleAddPage}
+            className="btn btn-secondary"
+          >
+            <PlusIcon />
+            新增頁面
+          </button>
+        </div>
+        
+        <div className="p-5">
           {config.pages.length === 0 ? (
-            <p className="text-gray-500 italic">No pages configured. Add your first page to get started.</p>
+            <p className="text-gray-500 dark:text-gray-400 italic py-4 text-center">尚未設定任何查詢頁面。點擊「新增頁面」開始。</p>
           ) : (
             <div className="space-y-4">
               {config.pages.map((page) => (
-                <div key={page.id} className="border rounded p-4 flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold">{page.title}</h3>
-                    {page.description && <p className="text-sm text-gray-500">{page.description}</p>}
-                    <p className="text-xs font-mono bg-gray-100 dark:bg-gray-700 p-1 mt-1 rounded">{page.jql}</p>
+                <div key={page.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                  <div className="flex-grow">
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-100">{page.title}</h3>
+                    {page.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{page.description}</p>}
+                    <p className="text-xs font-mono bg-gray-100 dark:bg-gray-700 p-1.5 mt-1.5 rounded-md inline-block break-all">{page.jql}</p>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 flex-shrink-0 mt-2 sm:mt-0">
                     <button
                       onClick={() => handleEditPage(page)}
-                      className="bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1 rounded"
+                      className="p-2 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 text-primary-color"
+                      aria-label="Edit page"
                     >
-                      Edit
+                      <EditIcon />
                     </button>
                     <button
                       onClick={() => deletePage(page.id)}
-                      className="bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded"
+                      className="p-2 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-accent-color"
+                      aria-label="Delete page"
                     >
-                      Delete
+                      <DeleteIcon />
                     </button>
                   </div>
                 </div>
               ))}
             </div>
           )}
+        </div>
+      </section>
           
-          {/* Page Edit Modal */}
-          {editingPage && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                <h3 className="text-xl font-semibold mb-4">
-                  {isAddingPage ? 'Add New Page' : 'Edit Page'}
-                </h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="title" className="block mb-1 font-medium">
-                      Title
-                    </label>
-                    <input
-                      type="text"
-                      id="title"
-                      value={editingPage.title}
-                      onChange={(e) => setEditingPage({...editingPage, title: e.target.value})}
-                      className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="description" className="block mb-1 font-medium">
-                      Description (optional)
-                    </label>
-                    <input
-                      type="text"
-                      id="description"
-                      value={editingPage.description || ''}
-                      onChange={(e) => setEditingPage({...editingPage, description: e.target.value})}
-                      className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-                    />
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <label htmlFor="jql" className="block font-medium">
-                        JQL Query
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setShowJQLHelp(!showJQLHelp)}
-                        className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded"
-                      >
-                        {showJQLHelp ? 'Hide Examples' : 'Show Examples'}
-                      </button>
-                    </div>
-                    <textarea
-                      id="jql"
-                      value={editingPage.jql}
-                      onChange={(e) => setEditingPage({...editingPage, jql: e.target.value})}
-                      rows={3}
-                      className="w-full p-2 border rounded font-mono text-sm dark:bg-gray-700 dark:border-gray-600"
-                      placeholder='project = "MyProject" AND status = "In Progress"'
-                    />
-                    {showJQLHelp && <JQLHelp />}
-                  </div>
-                  
-                  <div className="flex justify-end space-x-2 pt-4">
-                    <button
-                      onClick={() => {
-                        setEditingPage(null);
-                        setIsAddingPage(false);
-                        setShowJQLHelp(false);
-                      }}
-                      className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => savePage(editingPage)}
-                      disabled={!editingPage.title || !editingPage.jql}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded disabled:opacity-50"
-                    >
-                      Save
-                    </button>
-                  </div>
+      {/* Page Edit Modal */}      
+      {editingPage && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-card-bg p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col jira-card">
+            <h3 className="text-xl font-semibold mb-5 text-gray-800 dark:text-gray-100">
+              {isAddingPage ? '新增查詢頁面' : '編輯查詢頁面'}
+            </h3>
+            
+            <div className="space-y-5 overflow-y-auto pr-2 flex-grow">
+              <div>
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  標題
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  value={editingPage.title}
+                  onChange={(e) => setEditingPage({...editingPage, title: e.target.value})}
+                  className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-color focus:border-primary-color dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  描述 (選填)
+                </label>
+                <input
+                  type="text"
+                  id="description"
+                  value={editingPage.description || ''}
+                  onChange={(e) => setEditingPage({...editingPage, description: e.target.value})}
+                  className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-primary-color focus:border-primary-color dark:bg-gray-700 dark:text-gray-100"
+                />
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label htmlFor="jql" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    JQL 查詢語句
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowJQLHelp(!showJQLHelp)}
+                    className="text-xs btn btn-ghost py-1 px-2"
+                  >
+                    {showJQLHelp ? '隱藏範例' : '顯示範例'}
+                  </button>
                 </div>
+                <textarea
+                  id="jql"
+                  value={editingPage.jql}
+                  onChange={(e) => setEditingPage({...editingPage, jql: e.target.value})}
+                  rows={4}
+                  className="w-full p-2.5 border border-gray-300 dark:border-gray-600 rounded-md font-mono text-sm shadow-sm focus:ring-primary-color focus:border-primary-color dark:bg-gray-700 dark:text-gray-100"
+                  placeholder='project = "MyProject" AND status = "In Progress" ORDER BY created DESC'
+                />
+                {showJQLHelp && <div className="mt-2"><JQLHelp /></div>}
               </div>
             </div>
-          )}
-        </div>
-
-        {/* Link to Dashboard */}
-        {config.pages.length > 0 && (
-          <div className="mt-8 text-center">
-            <Link 
-              href="/dashboard" 
-              className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg text-lg"
-            >
-              Go to Dashboard
-            </Link>
+            
+            <div className="flex justify-end space-x-3 pt-5 mt-auto border-t border-card-border">
+              <button
+                type="button"
+                onClick={() => { setEditingPage(null); setIsAddingPage(false); setShowJQLHelp(false); }}
+                className="btn btn-ghost"
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={() => savePage(editingPage)}
+                disabled={!editingPage.title || !editingPage.jql}
+                className="btn btn-primary"
+              >
+                儲存頁面
+              </button>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 } 
