@@ -1,26 +1,198 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --foreground-rgb: 51, 51, 51;
+  --background-start-rgb: 245, 245, 245;
+  --background-end-rgb: 248, 248, 248;
+  --primary-color: 30, 115, 190;
+  --primary-light: 235, 245, 255;
+  --secondary-color: 22, 163, 74;
+  --accent-color: 244, 63, 94;
+  --card-bg: 255, 255, 255;
+  --card-border: 235, 235, 235;
+  --header-bg: 30, 115, 190;
+  --sidebar-bg: 255, 255, 255;
+  --sidebar-active: 235, 245, 255;
+  --sidebar-text: 75, 75, 75;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground-rgb: 225, 225, 225;
+    --background-start-rgb: 30, 30, 30;
+    --background-end-rgb: 40, 40, 40;
+    --primary-color: 30, 115, 190;
+    --primary-light: 20, 60, 120;
+    --secondary-color: 34, 197, 94;
+    --accent-color: 244, 63, 94;
+    --card-bg: 50, 50, 50;
+    --card-border: 70, 70, 70;
+    --header-bg: 30, 115, 190;
+    --sidebar-bg: 40, 40, 40;
+    --sidebar-active: 20, 60, 120;
+    --sidebar-text: 200, 200, 200;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+}
+
+/* 應用布局 */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-header {
+  background-color: rgb(var(--header-bg));
+  color: white;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app-header-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.app-search {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  color: white;
+  border: none;
+  width: 300px;
+}
+
+.app-search::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+}
+
+.app-sidebar {
+  width: 220px;
+  background-color: rgb(var(--sidebar-bg));
+  border-right: 1px solid rgb(var(--card-border));
+  flex-shrink: 0;
+}
+
+.sidebar-menu {
+  padding: 1rem 0;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: rgb(var(--sidebar-text));
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.sidebar-item:hover {
+  background-color: rgba(var(--primary-color), 0.05);
+}
+
+.sidebar-item.active {
+  background-color: rgb(var(--sidebar-active));
+  color: rgb(var(--primary-color));
+  font-weight: 600;
+}
+
+.sidebar-icon {
+  margin-right: 0.75rem;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-content {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+}
+
+.content-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.content-description {
+  color: rgba(var(--foreground-rgb), 0.7);
+  margin-bottom: 1.5rem;
+}
+
+/* 自定義卡片樣式 */
+.jira-card {
+  background-color: rgb(var(--card-bg));
+  border: 1px solid rgb(var(--card-border));
+  border-radius: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.jira-card:hover {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* 狀態標籤樣式 */
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-todo {
+  background-color: rgb(254, 240, 138);
+  color: rgb(161, 98, 7);
+}
+
+.status-inprogress {
+  background-color: rgb(186, 230, 253);
+  color: rgb(3, 105, 161);
+}
+
+.status-done {
+  background-color: rgb(187, 247, 208);
+  color: rgb(4, 108, 78);
+}
+
+.status-blocked {
+  background-color: rgb(254, 202, 202);
+  color: rgb(185, 28, 28);
+}
+
+/* 響應式布局 */
+@media (max-width: 768px) {
+  .app-body {
+    flex-direction: column;
+  }
+  
+  .app-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgb(var(--card-border));
+  }
+
+  .app-search {
+    width: 200px;
+  }
 }
