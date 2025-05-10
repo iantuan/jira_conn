@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <>
+    <div className="bg-white p-6">
       <h1 className="content-title">儀表板概覽</h1>
       <p className="content-description">
         此頁面提供各種Jira報表和功能的快速訪問。
@@ -62,6 +62,6 @@ export default function Home() {
           您可以定義多個頁面，每個頁面具有自己的JQL查詢，以可視化Jira項目的不同方面。
         </p>
       </div>
-    </>
+    </div>
   );
 }

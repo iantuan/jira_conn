@@ -4,8 +4,8 @@
 
 :root {
   --foreground-rgb: 51, 51, 51;
-  --background-start-rgb: 245, 245, 245;
-  --background-end-rgb: 248, 248, 248;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
   --primary-color: 30, 115, 190;
   --primary-light: 235, 245, 255;
   --secondary-color: 22, 163, 74;
@@ -21,7 +21,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 225, 225, 225;
-    --background-start-rgb: 30, 30, 30;
+    --background-start-rgb: 40, 40, 40;
     --background-end-rgb: 40, 40, 40;
     --primary-color: 30, 115, 190;
     --primary-light: 20, 60, 120;
@@ -46,6 +46,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: rgb(var(--background-start-rgb));
 }
 
 .app-header {
@@ -126,6 +127,7 @@ body {
   flex: 1;
   padding: 1.5rem;
   overflow-y: auto;
+  background-color: rgb(var(--background-start-rgb));
 }
 
 .content-title {

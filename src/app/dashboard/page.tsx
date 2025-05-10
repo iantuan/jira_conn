@@ -226,7 +226,7 @@ export default function DashboardPage() {
   }
   
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto bg-white">
       {/* Header */}
       <div className="py-4 px-4 mb-4 border-b flex justify-between items-center bg-white dark:bg-gray-800 shadow-sm">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Jira Dashboard</h1>
@@ -234,6 +234,7 @@ export default function DashboardPage() {
           <button
             onClick={() => mutate()}
             className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition-colors flex items-center"
+            style={{ backgroundColor: 'rgb(var(--primary-color))' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
@@ -263,7 +264,7 @@ export default function DashboardPage() {
       </div>
       
       {/* Main Content with Sidebar */}
-      <div className="layout-container px-4 mb-8">
+      <div className="layout-container px-4 mb-8 bg-white">
         {/* Sidebar with Page Tabs */}
         <div className={`sidebar bg-white dark:bg-gray-800 rounded-lg jira-card ${isSidebarOpen ? '' : 'hidden md:block'}`}>
           <div className="flex justify-between items-center mb-4">
