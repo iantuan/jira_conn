@@ -5,16 +5,13 @@ import { useAtom, useAtomValue } from 'jotai';
 import {
   currentPageIdAtom,
   currentPageAtom, 
-  jiraConnectionApiAtom, // For baseUrl and email
-  jiraPagesApiAtom // Used by currentPageAtom implicitly
+  jiraPagesApiAtom 
 } from '@/store/jiraStore';
 import Link from 'next/link';
 import { JiraIssue } from '@/types/jira';
 import { formatDistanceToNow } from 'date-fns';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
-// createJiraService is NOT directly used here anymore for making the API call
-// The call is made to our own /api/jira proxy endpoint
 
 // Placeholder icons
 const LoadingIcon = () => <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-color mx-auto"></div>;
@@ -27,8 +24,7 @@ export default function DashboardPage() {
   
   const [currentPageId, setCurrentPageId] = useAtom(currentPageIdAtom);
   const currentPageDetails = useAtomValue(currentPageAtom); 
-  const jiraConnectionSettings = useAtomValue(jiraConnectionApiAtom); // For baseUrl, email
-  const jiraPages = useAtomValue(jiraPagesApiAtom); // To check if any pages exist
+  const jiraPages = useAtomValue(jiraPagesApiAtom);
   
   const [startAt, setStartAt] = useState(0);
   const issuesPerPage = 20;
@@ -38,37 +34,29 @@ export default function DashboardPage() {
       setCurrentPageId(pageIdFromUrl);
       setStartAt(0);
     } else if (!pageIdFromUrl && jiraPages.length > 0 && !currentPageId) {
-      // If no pageId in URL, but pages exist and no currentPageId is set, default to first page if desired
-      // setCurrentPageId(jiraPages[0].id); 
-      // setStartAt(0);
+      // Optionally default to first page if no pageId in URL
+      // This logic might be better placed in a wrapper or when the app initializes
+      // For now, if no pageId from URL, it will rely on currentPageDetails being null to show selection prompt.
     }
   }, [pageIdFromUrl, currentPageId, setCurrentPageId, jiraPages]);
 
-  // SWR key now includes more dependencies to re-fetch when they change.
-  // The actual API call is to our /api/jira proxy.
-  const swrKey = currentPageDetails && currentPageDetails.jql && jiraConnectionSettings.baseUrl
-    ? [`/api/jira`, currentPageDetails.jql, startAt, issuesPerPage, jiraConnectionSettings.baseUrl, jiraConnectionSettings.email]
+  // SWR key now depends on the pageId (from currentPageDetails)
+  const swrKey = currentPageDetails && currentPageDetails.id
+    ? [`/api/jira`, currentPageDetails.id, startAt, issuesPerPage]
     : null;
 
   const { data, error, isLoading, mutate } = useSWR(swrKey,
-    async ([url, jql, sAt, mResults, bUrl, mail]) => {
+    async ([url, pId, sAt, mResults]: [string, string, number, number]) => {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          // These are parameters for our /api/jira proxy route
-          jql: jql,
+          pageId: pId,         // Send pageId to the proxy
           startAt: sAt,
           maxResults: mResults,
-          // The proxy will fetch baseUrl, email, and apiToken from DB based on auth or global config
-          // We are sending them here for the proxy to know which Jira instance to target if multiple are supported,
-          // or if the proxy uses them directly (though it should ideally fetch from secure backend store)
-          // For a single global config, these might not be needed in the body if the proxy knows to use it.
-          // However, sending them makes the proxy more flexible if you ever support multiple Jira instances.
-          _targetBaseUrl: bUrl, // Prefix with _ to indicate it's for proxy's context if needed
-          _targetEmail: mail,   // Same as above
+          // The proxy will now use pageId to get JQL and other necessary fields from DB
         }),
       });
       if (!response.ok) {
@@ -99,7 +87,17 @@ export default function DashboardPage() {
     return 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200';
   };
 
-  if (jiraPages.length === 0 && !isLoading) { // Check isLoading for pages as well if fetched via SWR
+  // Show loading if jiraPages are loading and no page is selected yet, or if currentPageDetails is missing
+  if (jiraPages.length === 0 && isLoading) { // Could use a dedicated isLoadingPages from a SWR hook for jiraPages if available
+    return (
+      <div className="text-center py-10">
+        <LoadingIcon />
+        <p className="mt-3 text-gray-600 dark:text-gray-400">Loading page configurations...</p>
+      </div>
+    );
+  }
+
+  if (jiraPages.length === 0) { 
     return (
       <div className="text-center py-10">
         <EmptyIcon />
@@ -122,12 +120,13 @@ export default function DashboardPage() {
     );
   }
 
+  // Now that we have currentPageDetails, proceed to render its content or loading/error states for its data
   const renderContent = () => {
-    if (isLoading && !data) {
+    if (isLoading && !data) { // isLoading for the SWR call for issues of the currentPageDetails
       return (
         <div className="text-center py-20">
           <LoadingIcon />
-          <p className="mt-3 text-gray-600 dark:text-gray-400">正在載入問題...</p>
+          <p className="mt-3 text-gray-600 dark:text-gray-400">正在載入問題 for {currentPageDetails.title}...</p>
         </div>
       );
     }
@@ -148,8 +147,7 @@ export default function DashboardPage() {
         <div className="jira-card p-8 text-center">
           <EmptyIcon />
           <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-2">找不到相關問題</h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400">目前的 JQL 查詢沒有返回任何結果。</p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 break-all">JQL: <code className="bg-gray-100 dark:bg-gray-700 p-1 rounded">{currentPageDetails.jql}</code></p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">目前的 JQL 查詢 ({currentPageDetails.jql}) 沒有返回任何結果。</p>
         </div>
       );
     }
@@ -231,6 +229,7 @@ export default function DashboardPage() {
         {currentPageDetails.description && 
           <p className="content-description -mt-2 max-w-3xl">{currentPageDetails.description}</p>}
         <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          {/* Display JQL for clarity, but it's fetched by proxy via pageId */}
           <span className="break-all">JQL: <code className="bg-gray-100 dark:bg-gray-700 p-1 rounded text-gray-700 dark:text-gray-200 text-[0.7rem]">{currentPageDetails.jql}</code></span>
           <button onClick={() => mutate()} className="btn btn-ghost py-1 px-2.5 text-xs mt-1 sm:mt-0 flex-shrink-0" disabled={isLoading && !data}>
             {isLoading && !data ? '載入中...' : '重新整理資料'}
