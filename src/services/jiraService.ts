@@ -1,150 +1,109 @@
-import axios from 'axios';
-import { JiraConfig, JiraSearchResult } from '@/types/jira';
+import { JiraConfig, JiraIssue, JiraSearchResult } from '@/types/jira';
 
-// Create a Jira API service
+// This service now acts as a client to our OWN /api/jira proxy endpoint.
 export const createJiraService = (config: JiraConfig) => {
-  // 檢查並確保配置正確
-  if (!config || !config.baseUrl || !config.email || !config.apiToken) {
-    console.warn('JiraService: Configuration is incomplete', config);
-  }
-  
-  const { baseUrl = '', email = '', apiToken = '' } = config || {};
-  
-  // Call API through our proxy
-  const callApi = async (endpoint: string, method = 'GET', data = {}) => {
-    // Ensure the baseUrl doesn't end with a slash and endpoint starts with one
-    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  // config (baseUrl, email, apiToken) from the client is NO LONGER directly used for auth here.
+  // The proxy /api/jira will fetch the actual credentials from the database.
+  // The config might still be used if the proxy needed hints (e.g. if multiple Jira instances were configured),
+  // but for a single global config, the proxy handles it all.
+
+  const callProxyApi = async (targetEndpoint: string, method = 'GET', bodyData?: any, queryParams?: any) => {
+    console.log(`JiraService: Calling our proxy for ${method} ${targetEndpoint}`);
     
-    const url = `${normalizedBaseUrl}${normalizedEndpoint}`;
-    console.log(`Calling Jira API: ${method} ${url}`);
-    
-    const response = await fetch('/api/jira', {
-      method: 'POST',
+    const proxyPayload: any = {
+      targetEndpoint,    // e.g., /rest/api/2/issue/KEY-123 or /rest/api/2/search
+      jiraApiMethod: method, // e.g., 'GET' or 'POST'
+    };
+
+    if (queryParams) { // For GET, these are URL parameters for the target Jira API
+      proxyPayload.jiraApiParams = queryParams;
+    }
+    if (bodyData) { // For POST/PUT, this is the body for the target Jira API
+      proxyPayload.jiraApiBody = bodyData;
+    }
+        
+    const response = await fetch('/api/jira', { // Always call our own proxy
+      method: 'POST', // Our proxy endpoint itself is always POST
       headers: {
         'Content-Type': 'application/json',
+        // No Authorization header here; the proxy adds it using server-side credentials from DB
       },
-      body: JSON.stringify({
-        url,
-        method,
-        data,
-        auth: {
-          username: email,
-          password: apiToken,
-        },
-      }),
+      body: JSON.stringify(proxyPayload),
     });
     
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: response.statusText }));
-      console.error('API call failed:', errorData);
-      throw new Error(`API request failed: ${errorData.error || response.statusText}`);
+      let errorDetails = { message: `Proxy request failed with status: ${response.status} ${response.statusText}` };
+      try {
+        errorDetails = await response.json();
+      } catch (e) {
+        // Could not parse JSON, stick with the status text
+      }
+      console.error('Proxy API call failed:', errorDetails);
+      throw new Error(errorDetails.message || `Proxy request to ${targetEndpoint} failed.`);
     }
     
-    const result = await response.json();
-    return result;
+    if (response.status === 204) { // Handle No Content responses
+      return null; 
+    }
+    return response.json();
   };
 
   return {
-    // Get issue details by key
-    getIssue: async (issueKey: string) => {
-      return callApi(`/rest/api/2/issue/${issueKey}?expand=renderedFields,names,schema,transitions,operations,editmeta,changelog`);
+    getIssue: async (issueKey: string): Promise<JiraIssue> => {
+      const endpoint = `/rest/api/2/issue/${issueKey}`;
+      const params = { expand: "renderedFields,names,schema,transitions,operations,editmeta,changelog" };
+      return callProxyApi(endpoint, 'GET', undefined /* no bodyData */, params /* queryParams */);
     },
     
-    // Search for issues using JQL
+    // searchIssues in this service is now less relevant if DashboardPage calls /api/jira with pageId.
+    // However, if there's a need for direct JQL search via service, it would look like this:
     searchIssues: async (
       jql: string, 
       startAt = 0, 
-      maxResults = 20, 
-      fields = "*all"
+      maxResults = 20
     ): Promise<JiraSearchResult> => {
-      console.log(`Searching issues with JQL: ${jql}`);
-      
-      // 定義所有需要的欄位
-      const requiredFields = [
-        "summary",
-        "status",
-        "assignee",
-        "reporter",
-        "priority",
-        "issuetype",
-        "created",
-        "updated",
-        "description",
-        "comment",
-        "project",
-        "labels",
-        "fixVersions",
-        "components"
-      ];
-      
-      // Properly format the request according to Jira API documentation
-      // See: https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issue-search/#api-rest-api-2-search-post
-      const searchPayload = {
+      const endpoint = '/rest/api/2/search';
+      const jiraSearchPayload = { // This is the body for the *actual* Jira /search API
         jql: jql.trim(),
         startAt: startAt,
         maxResults: maxResults,
-        fields: requiredFields,
-        fieldsByKeys: false,
+        fields: ["summary", "status", "assignee", "reporter", "priority", "issuetype", "created", "updated", "project"],
         expand: ["renderedFields", "names", "schema"]
       };
-      
-      // Log the exact payload being sent
-      console.log('Search payload:', JSON.stringify(searchPayload));
-      
-      try {
-        const result = await callApi('/rest/api/2/search', 'POST', searchPayload);
-        // 檢查結果
-        if (result && result.issues) {
-          console.log(`Received ${result.issues.length} issues, sample:`, 
-            result.issues.length > 0 ? 
-              { key: result.issues[0].key, fields: Object.keys(result.issues[0].fields || {}) } : 
-              "No issues"
-          );
-        }
-        return result;
-      } catch (error) {
-        console.error('Error searching Jira issues:', error);
-        throw error;
-      }
+      // We tell our proxy to POST this body to Jira's search endpoint
+      return callProxyApi(endpoint, 'POST', jiraSearchPayload);
     },
     
-    // Test connection to Jira
     testConnection: async () => {
+      console.warn("jiraService.testConnection() now calls the proxy for /rest/api/2/myself");
       try {
-        const user = await callApi('/rest/api/2/myself');
-        console.log('Connection test successful:', user);
+        const user = await callProxyApi('/rest/api/2/myself', 'GET');
         return {
           success: true,
           user,
         };
-      } catch (error) {
-        console.error('Jira connection test failed:', error);
+      } catch (error: any) {
         return {
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error.message || 'Connection test via proxy failed',
         };
       }
     },
   };
 };
 
-// Create a safe function to call Jira API
+// callJiraApi helper: config is now mainly for context if needed, not for direct auth details.
 export const callJiraApi = async <T>(
-  config: JiraConfig | null, 
+  _config: Pick<JiraConfig, 'baseUrl' | 'email'> | JiraConfig | null, // Config is less critical here now
   apiCall: (jiraService: ReturnType<typeof createJiraService>) => Promise<T>
 ): Promise<T | null> => {
-  if (!config || !config.baseUrl || !config.email || !config.apiToken) {
-    console.error('Jira configuration is incomplete', config);
-    return null;
-  }
-  
+  // Create a dummy config for createJiraService signature if needed, actual credentials are in DB used by proxy.
+  const placeholderConfig: JiraConfig = { baseUrl: '', email: '', apiToken: 'PROXY_HANDLES_THIS', pages: [] };
   try {
-    const jiraService = createJiraService(config);
-    const result = await apiCall(jiraService);
-    return result;
+    const jiraService = createJiraService(placeholderConfig);
+    return await apiCall(jiraService);
   } catch (error) {
-    console.error('Jira API call failed:', error);
+    console.error('callJiraApi (through proxy) failed:', error);
     return null;
   }
 }; 
