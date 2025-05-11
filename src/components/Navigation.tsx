@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAtom } from 'jotai';
-import { jiraConfigAtom, currentPageIdAtom } from '@/store/jiraStore';
+import { currentPageIdAtom, jiraPagesApiAtom } from '@/store/jiraStore';
+import { useJiraPageConfigs } from '@/hooks/useConfig';
+import { useEffect } from 'react';
 
 // Placeholder icons (replace with actual SVG components or a library like Heroicons)
 const DashboardIcon = () => <svg className="sidebar-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>;
@@ -12,8 +14,23 @@ const PageIcon = () => <svg className="sidebar-icon" viewBox="0 0 20 20" fill="c
 
 export function Navigation() {
   const pathname = usePathname();
-  const [jiraConfig] = useAtom(jiraConfigAtom);
   const [currentPageId, setCurrentPageId] = useAtom(currentPageIdAtom);
+  
+  // Use SWR hook to fetch page configurations
+  const { pages: jiraApiPages, isLoadingPages, isErrorPages } = useJiraPageConfigs();
+  const [_, setJiraPagesApiAtom] = useAtom(jiraPagesApiAtom); // To sync with global atom if needed
+
+  // Sync SWR data to Jotai atom (optional, depending on how other components access this data)
+  useEffect(() => {
+    if (jiraApiPages) {
+      setJiraPagesApiAtom(jiraApiPages);
+    }
+  }, [jiraApiPages, setJiraPagesApiAtom]);
+
+  const handlePageLinkClick = (pageId: string) => {
+    setCurrentPageId(pageId);
+    // Potentially reset dashboard-specific states like pagination, filters here
+  };
   
   return (
     <nav className="sidebar-menu">
@@ -26,23 +43,35 @@ export function Navigation() {
         <span>系統設定</span>
       </Link>
       
-      {jiraConfig.pages.length > 0 && (
+      {isLoadingPages && (
+        <div className="sidebar-section-title pt-3">
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 animate-pulse"></div>
+        </div>
+      )}
+
+      {!isLoadingPages && !isErrorPages && jiraApiPages && jiraApiPages.length > 0 && (
         <div className="sidebar-section-title pt-3">
           自訂查詢
         </div>
       )}
       
-      {jiraConfig.pages.map(page => (
+      {!isLoadingPages && !isErrorPages && jiraApiPages?.map(page => (
         <Link 
           key={page.id}
           href={`/dashboard?pageId=${page.id}`}
           className={`sidebar-item ${currentPageId === page.id ? 'active' : ''}`}
-          onClick={() => setCurrentPageId(page.id)}
+          onClick={() => handlePageLinkClick(page.id)}
         >
           <PageIcon />
-          <span>{page.title}</span>
+          <span className="truncate" title={page.title}>{page.title}</span>
         </Link>
       ))}
+
+      {isErrorPages && (
+         <div className="sidebar-section-title pt-3 text-accent-color">
+          無法載入頁面
+        </div>
+      )}
     </nav>
   );
 } 

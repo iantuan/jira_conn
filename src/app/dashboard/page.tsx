@@ -2,15 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
-import { jiraConfigAtom, currentPageIdAtom, currentPageAtom } from '@/store/jiraStore';
+import {
+  currentPageIdAtom,
+  currentPageAtom, 
+  jiraConnectionApiAtom, // For baseUrl and email
+  jiraPagesApiAtom // Used by currentPageAtom implicitly
+} from '@/store/jiraStore';
 import Link from 'next/link';
 import { JiraIssue } from '@/types/jira';
 import { formatDistanceToNow } from 'date-fns';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
-import { createJiraService } from '@/services/jiraService';
+// createJiraService is NOT directly used here anymore for making the API call
+// The call is made to our own /api/jira proxy endpoint
 
-// Placeholder icons from globals.css or a component library
+// Placeholder icons
 const LoadingIcon = () => <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-color mx-auto"></div>;
 const ErrorIcon = () => <svg className="w-12 h-12 text-accent-color mx-auto mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>;
 const EmptyIcon = () => <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>;
@@ -19,38 +25,61 @@ export default function DashboardPage() {
   const searchParamsNav = useSearchParams();
   const pageIdFromUrl = searchParamsNav.get('pageId');
   
-  const jiraConfig = useAtomValue(jiraConfigAtom);
   const [currentPageId, setCurrentPageId] = useAtom(currentPageIdAtom);
-  const [currentPageDetails] = useAtom(currentPageAtom); // This atom is derived from currentPageId and jiraConfig
+  const currentPageDetails = useAtomValue(currentPageAtom); 
+  const jiraConnectionSettings = useAtomValue(jiraConnectionApiAtom); // For baseUrl, email
+  const jiraPages = useAtomValue(jiraPagesApiAtom); // To check if any pages exist
   
   const [startAt, setStartAt] = useState(0);
-  const issuesPerPage = 20; // Or make this configurable
+  const issuesPerPage = 20;
 
-  // Effect to sync currentPageId with URL, and reset pagination
   useEffect(() => {
     if (pageIdFromUrl && pageIdFromUrl !== currentPageId) {
       setCurrentPageId(pageIdFromUrl);
-      setStartAt(0); 
-    } else if (!pageIdFromUrl && jiraConfig.pages.length > 0 && !currentPageId) {
-      // If no pageId in URL, but pages exist and no currentPageId is set, default to first page
-      // This might be handled by Navigation component too, ensuring currentPageIdAtom is set.
-      // For robustness, we can set it here if it's still null.
-      // setCurrentPageId(jiraConfig.pages[0].id);
+      setStartAt(0);
+    } else if (!pageIdFromUrl && jiraPages.length > 0 && !currentPageId) {
+      // If no pageId in URL, but pages exist and no currentPageId is set, default to first page if desired
+      // setCurrentPageId(jiraPages[0].id); 
       // setStartAt(0);
-    } else if (!pageIdFromUrl && !currentPageId && jiraConfig.pages.length === 0){
-      // No pages configured, currentPageId will be null, handled by return below
     }
-  }, [pageIdFromUrl, currentPageId, setCurrentPageId, jiraConfig.pages]);
+  }, [pageIdFromUrl, currentPageId, setCurrentPageId, jiraPages]);
 
-  const { data, error, isLoading, mutate } = useSWR(
-    currentPageDetails && jiraConfig.baseUrl && currentPageDetails.jql
-      ? [`jira-search`, currentPageDetails.jql, jiraConfig, startAt, issuesPerPage] 
-      : null,
-    async ([_, jql, config, currentStartAt, currentMaxResults]) => {
-      const service = createJiraService(config);
-      return service.searchIssues(jql, currentStartAt, currentMaxResults);
+  // SWR key now includes more dependencies to re-fetch when they change.
+  // The actual API call is to our /api/jira proxy.
+  const swrKey = currentPageDetails && currentPageDetails.jql && jiraConnectionSettings.baseUrl
+    ? [`/api/jira`, currentPageDetails.jql, startAt, issuesPerPage, jiraConnectionSettings.baseUrl, jiraConnectionSettings.email]
+    : null;
+
+  const { data, error, isLoading, mutate } = useSWR(swrKey,
+    async ([url, jql, sAt, mResults, bUrl, mail]) => {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          // These are parameters for our /api/jira proxy route
+          jql: jql,
+          startAt: sAt,
+          maxResults: mResults,
+          // The proxy will fetch baseUrl, email, and apiToken from DB based on auth or global config
+          // We are sending them here for the proxy to know which Jira instance to target if multiple are supported,
+          // or if the proxy uses them directly (though it should ideally fetch from secure backend store)
+          // For a single global config, these might not be needed in the body if the proxy knows to use it.
+          // However, sending them makes the proxy more flexible if you ever support multiple Jira instances.
+          _targetBaseUrl: bUrl, // Prefix with _ to indicate it's for proxy's context if needed
+          _targetEmail: mail,   // Same as above
+        }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: response.statusText }));
+        const err = new Error(errorData.message || 'Failed to fetch Jira issues through proxy') as any;
+        err.status = response.status;
+        throw err;
+      }
+      return response.json();
     },
-    { revalidateOnFocus: true, keepPreviousData: true } // keepPreviousData for smoother pagination
+    { revalidateOnFocus: true, keepPreviousData: true }
   );
 
   const formatDate = (dateString: string) => {
@@ -65,14 +94,12 @@ export default function DashboardPage() {
   const getStatusClass = (statusCategoryKey?: string, statusName?: string) => {
     if (statusCategoryKey === 'done') return 'status-done';
     if (statusCategoryKey === 'indeterminate') return 'status-inprogress';
-    if (statusCategoryKey === 'new' || statusCategoryKey === 'undefined') return 'status-todo'; // 'undefined' for some Jira Cloud statuses
-    // Fallback for specific names if category is not standard
+    if (statusCategoryKey === 'new' || statusCategoryKey === 'undefined') return 'status-todo';
     if (statusName?.toLowerCase().includes('block')) return 'status-blocked';
-    return 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200'; // Default fallback
+    return 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200';
   };
 
-  // Initial state: No pages configured at all
-  if (jiraConfig.pages.length === 0) {
+  if (jiraPages.length === 0 && !isLoading) { // Check isLoading for pages as well if fetched via SWR
     return (
       <div className="text-center py-10">
         <EmptyIcon />
@@ -85,21 +112,18 @@ export default function DashboardPage() {
     );
   }
 
-  // State: Pages configured, but no specific page selected (e.g. /dashboard direct access)
   if (!currentPageDetails) {
     return (
       <div className="text-center py-10">
         <EmptyIcon />
         <h2 className="content-title text-xl">請選擇一個查詢</h2>
         <p className="content-description">請從左側側邊欄選擇一個 Jira 查詢頁面來顯示相關問題。</p>
-        {/* Optionally, show a list of available pages here as well, or guide to sidebar more explicitly */}
       </div>
     );
   }
 
-  // Main content rendering logic for a selected page
   const renderContent = () => {
-    if (isLoading && !data) { // Show full page loader only on initial load or when JQL changes
+    if (isLoading && !data) {
       return (
         <div className="text-center py-20">
           <LoadingIcon />
@@ -107,7 +131,6 @@ export default function DashboardPage() {
         </div>
       );
     }
-
     if (error) {
       return (
         <div className="jira-card p-6 text-center">
@@ -120,7 +143,6 @@ export default function DashboardPage() {
         </div>
       );
     }
-
     if (!data || !data.issues || data.issues.length === 0) {
       return (
         <div className="jira-card p-8 text-center">
@@ -131,15 +153,12 @@ export default function DashboardPage() {
         </div>
       );
     }
-
-    // Issues table is rendered if data is available
     return (
       <div className="jira-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-gray-700/50">
               <tr>
-                {/* Define columns based on available data or configuration */}
                 {['Key', 'Summary', 'Status', 'Assignee', 'Priority', 'Updated'].map(header => (
                   <th key={header} className="px-4 py-3 font-medium text-gray-600 dark:text-gray-300 text-left whitespace-nowrap">{header}</th>
                 ))}
@@ -186,25 +205,16 @@ export default function DashboardPage() {
             </tbody>
           </table>
         </div>
-        {/* Pagination Controls */}
         {data.total > issuesPerPage && (
           <div className="p-4 border-t border-card-border flex flex-col sm:flex-row justify-between items-center gap-2">
             <span className="text-xs text-gray-600 dark:text-gray-400">
               顯示 {startAt + 1} - {Math.min(startAt + data.issues.length, data.total)} / 共 {data.total} 個結果
             </span>
             <div className="space-x-2">
-              <button 
-                onClick={() => setStartAt(prev => Math.max(0, prev - issuesPerPage))}
-                disabled={startAt === 0 || (isLoading && !!data) }
-                className="btn btn-ghost py-1.5 px-3 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              <button onClick={() => setStartAt(prev => Math.max(0, prev - issuesPerPage))} disabled={startAt === 0 || (isLoading && !!data) } className="btn btn-ghost py-1.5 px-3 text-xs disabled:opacity-50 disabled:cursor-not-allowed">
                 上一頁
               </button>
-              <button 
-                onClick={() => setStartAt(prev => prev + issuesPerPage)}
-                disabled={startAt + issuesPerPage >= data.total || (isLoading && !!data)}
-                className="btn btn-ghost py-1.5 px-3 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              <button onClick={() => setStartAt(prev => prev + issuesPerPage)} disabled={startAt + issuesPerPage >= data.total || (isLoading && !!data)} className="btn btn-ghost py-1.5 px-3 text-xs disabled:opacity-50 disabled:cursor-not-allowed">
                 下一頁
               </button>
             </div>
@@ -214,7 +224,6 @@ export default function DashboardPage() {
     );
   };
 
-  // Main return for the page, once a currentPageDetails is confirmed
   return (
     <div className="space-y-6">
       <div>
@@ -223,11 +232,7 @@ export default function DashboardPage() {
           <p className="content-description -mt-2 max-w-3xl">{currentPageDetails.description}</p>}
         <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
           <span className="break-all">JQL: <code className="bg-gray-100 dark:bg-gray-700 p-1 rounded text-gray-700 dark:text-gray-200 text-[0.7rem]">{currentPageDetails.jql}</code></span>
-          <button 
-            onClick={() => mutate()} 
-            className="btn btn-ghost py-1 px-2.5 text-xs mt-1 sm:mt-0 flex-shrink-0" 
-            disabled={isLoading && !data} // Only disable on initial hard load
-          >
+          <button onClick={() => mutate()} className="btn btn-ghost py-1 px-2.5 text-xs mt-1 sm:mt-0 flex-shrink-0" disabled={isLoading && !data}>
             {isLoading && !data ? '載入中...' : '重新整理資料'}
           </button>
         </div>

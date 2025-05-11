@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  username       String   @unique
+  hashedPassword String
+  role           UserRole @default(VIEWER)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relation to JiraConnectionSetting if one user can have one setting
+  // jiraConnection JiraConnectionSetting? 
+}
+
+enum UserRole {
+  ADMIN
+  VIEWER
+}
+
+// Global Jira Connection Settings (assuming one global config for simplicity)
+model JiraConnectionSetting {
+  id        String   @id @default(cuid()) // Or a fixed ID like "global_jira_config"
+  baseUrl   String?
+  email     String?
+  apiToken  String? // IMPORTANT: Should be encrypted in a real application
+  updatedAt DateTime @updatedAt
+
+  // If using a fixed ID to ensure only one row:
+  // @@unique([id]) 
+}
+
+model JiraPageConfig {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  jql         String
+  columns     String? // Storing as JSON string: "[\"summary\", \"status\"]"
+  sortBy      String?
+  sortOrder   String? // "ASC" or "DESC"
+  ownerId     String? // Optional: If pages are user-specific in the future
+  // owner       User?   @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

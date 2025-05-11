@@ -1,92 +1,97 @@
 import { NextRequest, NextResponse } from 'next/server';
+// import { getServerSession } from "next-auth/next"; // No longer needed if proxy is public
+// import { authOptions } from "@/app/api/auth/[...nextauth]/route"; // No longer needed
+import { PrismaClient } from "@/generated/prisma";
+
+const prisma = new PrismaClient();
+const GLOBAL_JIRA_SETTINGS_ID = "global_jira_settings";
 
 export async function POST(request: NextRequest) {
+  // Session check removed to allow anonymous access to the proxy.
+  // WARNING: This means ANYONE who can hit this endpoint can query your Jira instance
+  // using the globally configured credentials.
+  // Consider the security implications carefully.
+
   try {
-    const { url, method, data, auth } = await request.json();
+    const jiraDbSettings = await prisma.jiraConnectionSetting.findUnique({
+      where: { id: GLOBAL_JIRA_SETTINGS_ID },
+    });
+
+    if (!jiraDbSettings || !jiraDbSettings.baseUrl || !jiraDbSettings.email || !jiraDbSettings.apiToken) {
+      return NextResponse.json({ message: 'Jira connection not configured in the system settings.' }, { status: 503 });
+    }
+
+    const { jql, startAt, maxResults, fields, expand } = await request.json();
     
-    console.log(`API Proxy: ${method} request to ${url}`);
-    console.log('Request data:', JSON.stringify(data));
+    const normalizedBaseUrl = jiraDbSettings.baseUrl.endsWith('/') ? jiraDbSettings.baseUrl.slice(0, -1) : jiraDbSettings.baseUrl;
+    const endpoint = '/rest/api/2/search';
+    const targetUrl = `${normalizedBaseUrl}${endpoint}`;
+
+    console.log(`(Public Proxy) Proxying Jira API: POST ${targetUrl}`);
+
+    const credentials = Buffer.from(`${jiraDbSettings.email}:${jiraDbSettings.apiToken}`).toString('base64');
     
-    // Encode credentials for Basic Auth
-    const credentials = Buffer.from(`${auth.username}:${auth.password}`).toString('base64');
-    
-    // Prepare headers
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       'Authorization': `Basic ${credentials}`,
       'Accept': 'application/json'
     };
     
-    // Prepare fetch options
+    const searchPayload = {
+      jql: jql?.trim() || '',
+      startAt: startAt || 0,
+      maxResults: maxResults || 20,
+      fields: fields || ["summary", "status", "assignee", "reporter", "priority", "issuetype", "created", "updated", "project"],
+      expand: expand || ["renderedFields", "names", "schema"],
+      fieldsByKeys: false,
+    };
+
     const fetchOptions: RequestInit = {
-      method: method || 'GET',
+      method: 'POST',
       headers: headers,
+      body: JSON.stringify(searchPayload),
     };
     
-    // Add body only for non-GET requests
-    if (method !== 'GET' && data) {
-      fetchOptions.body = JSON.stringify(data);
-    }
-    
-    // Make the request to Jira API
-    const response = await fetch(url, fetchOptions);
-    
-    // Get response content
-    const responseText = await response.text();
-    
-    // Check if response is successful
-    if (!response.ok) {
-      console.error(`Jira API error (${response.status}): ${responseText}`);
-      
-      // Try to parse JSON error
-      let errorDetails = responseText;
+    // console.log('(Public Proxy) sending to Jira:', JSON.stringify(searchPayload, null, 2));
+
+    const jiraApiResponse = await fetch(targetUrl, fetchOptions);
+    const responseText = await jiraApiResponse.text();
+
+    if (!jiraApiResponse.ok) {
+      console.error(`(Public Proxy) Jira API error (${jiraApiResponse.status}) from ${targetUrl}: ${responseText}`);
       try {
-        errorDetails = JSON.parse(responseText);
+        const errorDetails = JSON.parse(responseText);
+        return NextResponse.json(
+          { error: `Jira API responded with status ${jiraApiResponse.status}`, details: errorDetails },
+          { status: jiraApiResponse.status }
+        );
       } catch (e) {
-        // If parsing fails, keep the text as is
+        return NextResponse.json(
+          { error: `Jira API responded with status ${jiraApiResponse.status}`, details: responseText },
+          { status: jiraApiResponse.status }
+        );
       }
-      
-      return NextResponse.json(
-        { 
-          error: `Jira API responded with status ${response.status}`, 
-          details: responseText,
-          request: {
-            url,
-            method,
-            data: JSON.stringify(data)
-          }
-        },
-        { status: response.status }
-      );
     }
     
-    // Parse response as JSON
-    let responseData;
     try {
-      responseData = JSON.parse(responseText);
+      const responseData = JSON.parse(responseText);
+      // console.log(`(Public Proxy) successful response from ${targetUrl}`);
+      return NextResponse.json(responseData);
     } catch (e) {
-      console.error('Failed to parse Jira response as JSON:', e);
+      console.error('(Public Proxy) Failed to parse Jira response as JSON:', e, "Response Text:", responseText);
       return NextResponse.json(
-        { error: 'Failed to parse Jira response', text: responseText },
+        { error: 'Proxy: Failed to parse Jira response', details: responseText },
         { status: 500 }
       );
     }
-    
-    if (responseData.issues) {
-      console.log(`Successful response from ${url} with ${responseData.issues.length} issues`);
-    } else {
-      console.log(`Successful response from ${url}`);
+
+  } catch (error: any) {
+    console.error('(Public Proxy) Jira API Proxy general error:', error);
+    if (error instanceof SyntaxError) {
+        return NextResponse.json({ message: 'Invalid request body sent to proxy' }, { status: 400 });
     }
-    
-    return NextResponse.json(responseData);
-  } catch (error) {
-    console.error('API proxy error:', error);
     return NextResponse.json(
-      { 
-        error: 'API request failed', 
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      },
+      { error: 'Jira API Proxy internal error', message: error.message },
       { status: 500 }
     );
   }

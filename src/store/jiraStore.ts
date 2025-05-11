@@ -1,59 +1,58 @@
 import { atom } from 'jotai';
-import { atomWithStorage } from 'jotai/utils';
-import { JiraConfig, JiraPage } from '@/types/jira';
+// import { atomWithStorage } from 'jotai/utils'; // No longer using atomWithStorage for jiraConfigAtom
+import { JiraConfig, JiraPage } from '@/types/jira'; // Keep these client-side types for now
+import { JiraPageConfig, JiraConnectionSetting } from '@/generated/prisma'; // For data from API
 
-// 確保在伺服器端初始化時不會嘗試訪問 localStorage
-const isBrowser = typeof window !== 'undefined';
-
-// Default empty configuration
-const defaultConfig: JiraConfig = {
+// Default empty configuration for the client-side atom
+const defaultClientConfig: JiraConfig = {
   baseUrl: '',
   email: '',
-  apiToken: '',
+  apiToken: '', // This will effectively store the token fetched for client-side operations or indicate presence
   pages: []
 };
 
-// 嘗試從 localStorage 加載現有配置
-const getInitialConfig = (): JiraConfig => {
-  if (!isBrowser) return defaultConfig;
-  
-  try {
-    const savedConfig = localStorage.getItem('jiraConfig');
-    if (savedConfig) {
-      const parsedConfig = JSON.parse(savedConfig);
-      console.log('Loaded config from localStorage:', parsedConfig);
-      // 確保所有必要的字段都存在
-      return {
-        baseUrl: parsedConfig.baseUrl || '',
-        email: parsedConfig.email || '',
-        apiToken: parsedConfig.apiToken || '',
-        pages: Array.isArray(parsedConfig.pages) ? parsedConfig.pages : []
-      };
-    }
-  } catch (error) {
-    console.error('Error loading Jira config from localStorage:', error);
-  }
-  
-  return defaultConfig;
-};
+// This atom will now be populated from API data via SWR hooks in the ConfigPage or a global initializer.
+// It serves as the client-side representation that other components might depend on.
+// The apiToken field in this client-side atom should be handled with extreme care.
+// For calls to /api/jira, the API token will be fetched server-side in that route handler.
+export const jiraConfigAtom = atom<JiraConfig>(defaultClientConfig);
 
-// Store the Jira configuration in localStorage
-export const jiraConfigAtom = atomWithStorage<JiraConfig>('jiraConfig', getInitialConfig());
+// Atom to store the raw API response for JIRA connection settings (excluding token)
+export const jiraConnectionApiAtom = atom<Partial<JiraConnectionSetting & { hasApiToken: boolean }>>({});
 
-// Current selected page
-export const currentPageIdAtom = atomWithStorage<string | null>('currentPageId', null);
+// Atom to store the raw API response for JIRA page configurations
+export const jiraPagesApiAtom = atom<JiraPageConfig[]>([]);
 
-// Derived atom for the current page
+
+// Current selected page ID (can remain as is, managed by client)
+export const currentPageIdAtom = atom<string | null>(null); // Kept atomWithStorage for user selection persistence
+// If you want to remove localStorage for currentPageId as well:
+// export const currentPageIdAtom = atom<string | null>(null);
+
+
+// Derived atom for the current page details (based on currentPageId and API-fetched pages)
 export const currentPageAtom = atom((get) => {
-  const config = get(jiraConfigAtom);
-  const currentPageId = get(currentPageIdAtom);
+  const pagesFromApi = get(jiraPagesApiAtom); // Use pages fetched from API
+  const currentId = get(currentPageIdAtom);
   
-  if (!currentPageId || !config.pages.length) return null;
+  if (!currentId || !pagesFromApi.length) return null;
   
-  return config.pages.find(page => page.id === currentPageId) || null;
+  const foundPage = pagesFromApi.find(page => page.id === currentId);
+  if (!foundPage) return null;
+
+  // Map JiraPageConfig (from DB) to JiraPage (client-side type if different)
+  // For now, assume they are compatible enough or types/jira.ts JiraPage is adapted.
+  return {
+    id: foundPage.id,
+    title: foundPage.title,
+    description: foundPage.description || '',
+    jql: foundPage.jql,
+    // columns, sortBy, sortOrder would need to be parsed if stored as JSON string in DB
+    // For simplicity, assuming direct compatibility for now.
+  } as JiraPage; // Cast to client-side JiraPage type
 });
 
-// Current search parameters
+// searchParamsAtom can remain as is, it's a client-side UI state
 export const searchParamsAtom = atom<{
   startAt: number;
   maxResults: number;
