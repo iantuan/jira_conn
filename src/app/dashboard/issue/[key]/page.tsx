@@ -6,6 +6,15 @@ import Link from 'next/link';
 import { formatDistanceToNow, format } from 'date-fns';
 import { useParams } from 'next/navigation';
 
+// 定義可排序的欄位
+type SortField = 'created' | 'updated' | 'priority' | 'status' | 'summary';
+type SortOrder = 'asc' | 'desc';
+
+interface SortConfig {
+  field: SortField;
+  order: SortOrder;
+}
+
 const ErrorIcon = () => <svg className="w-12 h-12 text-accent-color mx-auto mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>;
 const EmptyIcon = () => <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>;
 
@@ -16,6 +25,7 @@ export default function IssuePage() {
   const { data: issue, error, isLoading } = useJiraIssue(key);
   const [isFullDescriptionShown, setIsFullDescriptionShown] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'updated', order: 'desc' });
   
   useEffect(() => {
     if (issue) {
@@ -54,6 +64,39 @@ export default function IssuePage() {
     return 'bg-gray-100 text-gray-800';
   };
   
+  const getSortIcon = (field: SortField) => {
+    if (sortConfig.field !== field) return null;
+    return sortConfig.order === 'asc' ? '↑' : '↓';
+  };
+
+  const handleSort = (field: SortField) => {
+    setSortConfig(prev => ({
+      field,
+      order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  const sortComments = (comments: any[]) => {
+    return [...comments].sort((a, b) => {
+      const aValue = a[sortConfig.field];
+      const bValue = b[sortConfig.field];
+      
+      if (sortConfig.field === 'created' || sortConfig.field === 'updated') {
+        const aDate = new Date(aValue || a.created).getTime();
+        const bDate = new Date(bValue || b.created).getTime();
+        return sortConfig.order === 'asc' ? aDate - bDate : bDate - aDate;
+      }
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.order === 'asc' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      
+      return 0;
+    });
+  };
+
   if (isLoading && !issue) { 
     return (
       <div className="text-center py-20">
@@ -94,7 +137,7 @@ export default function IssuePage() {
   const { fields, renderedFields } = issue;
   
   const sortedComments = fields.comment?.comments 
-    ? [...fields.comment.comments].sort((a, b) => new Date(b.updated || b.created).getTime() - new Date(a.updated || a.created).getTime()) 
+    ? sortComments(fields.comment.comments)
     : [];
 
   return (
@@ -165,7 +208,16 @@ export default function IssuePage() {
                 
                 {/* Comments */}
                 <div className="jira-card p-4">
-                  <h2 className="text-xl font-semibold mb-3 flex items-center"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" /><path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" /></svg>Comments ({fields.comment.total})</h2>
+                  <div className="flex justify-between items-center mb-3">
+                    <h2 className="text-xl font-semibold flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z" />
+                        <path d="M15 7v2a4 4 0 01-4 4H9.828l-1.766 1.767c.28.149.599.233.938.233h2l3 3v-3h2a2 2 0 002-2V9a2 2 0 00-2-2h-1z" />
+                      </svg>
+                      Comments {fields.comment && fields.comment.total ? `(${fields.comment.total})` : (sortedComments.length > 0 ? `(${sortedComments.length})` : '(0)')}
+                    </h2>
+                  </div>
+                  
                   {fields.comment && fields.comment.comments && fields.comment.comments.length > 0 && (
                     <div className="space-y-4">
                       {sortedComments.map((comment: any) => (
@@ -175,7 +227,9 @@ export default function IssuePage() {
                               {comment.author?.avatarUrls?.['24x24'] && <img src={comment.author.avatarUrls['24x24']} alt={comment.author.displayName} className="w-6 h-6 rounded-full mr-2" />}
                               <div className="font-medium text-sm">{comment.author?.displayName || 'Unknown User'}</div>
                             </div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">{formatTimeAgo(comment.updated || comment.created)}</div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {formatTimeAgo(comment.updated || comment.created)}
+                            </div>
                           </div>
                           <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: comment.body }} />
                         </div>

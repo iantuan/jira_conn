@@ -13,6 +13,15 @@ import { formatDistanceToNow } from 'date-fns';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 
+// 定義可排序的欄位
+type SortField = 'key' | 'summary' | 'status' | 'assignee' | 'priority' | 'updated';
+type SortOrder = 'asc' | 'desc';
+
+interface SortConfig {
+  field: SortField;
+  order: SortOrder;
+}
+
 // Placeholder icons
 const LoadingIcon = () => <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-color mx-auto"></div>;
 const ErrorIcon = () => <svg className="w-12 h-12 text-accent-color mx-auto mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" /></svg>;
@@ -28,6 +37,7 @@ export default function DashboardPage() {
   
   const [startAt, setStartAt] = useState(0);
   const issuesPerPage = 20;
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'updated', order: 'desc' });
 
   useEffect(() => {
     if (pageIdFromUrl && pageIdFromUrl !== currentPageId) {
@@ -40,23 +50,24 @@ export default function DashboardPage() {
     }
   }, [pageIdFromUrl, currentPageId, setCurrentPageId, jiraPages]);
 
-  // SWR key now depends on the pageId (from currentPageDetails)
+  // SWR key now includes sort parameters
   const swrKey = currentPageDetails && currentPageDetails.id
-    ? [`/api/jira`, currentPageDetails.id, startAt, issuesPerPage]
+    ? [`/api/jira`, currentPageDetails.id, startAt, issuesPerPage, sortConfig.field, sortConfig.order]
     : null;
 
   const { data, error, isLoading, mutate } = useSWR(swrKey,
-    async ([url, pId, sAt, mResults]: [string, string, number, number]) => {
+    async ([url, pId, sAt, mResults, sortField, sortOrder]: [string, string, number, number, string, string]) => {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          pageId: pId,         // Send pageId to the proxy
+          pageId: pId,
           startAt: sAt,
           maxResults: mResults,
-          // The proxy will now use pageId to get JQL and other necessary fields from DB
+          sortField,
+          sortOrder,
         }),
       });
       if (!response.ok) {
@@ -85,6 +96,14 @@ export default function DashboardPage() {
     if (statusCategoryKey === 'new' || statusCategoryKey === 'undefined') return 'status-todo';
     if (statusName?.toLowerCase().includes('block')) return 'status-blocked';
     return 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-200';
+  };
+
+  const handleSort = (field: SortField) => {
+    setSortConfig(prev => ({
+      field,
+      order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
+    }));
+    setStartAt(0); // Reset to first page when sorting changes
   };
 
   // Show loading if jiraPages are loading and no page is selected yet, or if currentPageDetails is missing
@@ -229,13 +248,47 @@ export default function DashboardPage() {
         {currentPageDetails.description && 
           <p className="content-description -mt-2 max-w-3xl">{currentPageDetails.description}</p>}
         <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          {/* Display JQL for clarity, but it's fetched by proxy via pageId */}
           <span className="break-all">JQL: <code className="bg-gray-100 dark:bg-gray-700 p-1 rounded text-gray-700 dark:text-gray-200 text-[0.7rem]">{currentPageDetails.jql}</code></span>
           <button onClick={() => mutate()} className="btn btn-ghost py-1 px-2.5 text-xs mt-1 sm:mt-0 flex-shrink-0" disabled={isLoading && !data}>
             {isLoading && !data ? '載入中...' : '重新整理資料'}
           </button>
         </div>
       </div>
+      {currentPageDetails && (
+        <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{currentPageDetails.title}</h2>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <label htmlFor="sortField" className="text-sm text-gray-600 dark:text-gray-300">Sort by:</label>
+                <select 
+                  id="sortField"
+                  value={sortConfig.field}
+                  onChange={(e) => handleSort(e.target.value as SortField)}
+                  className="text-sm border rounded px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+                >
+                  <option value="key">Key</option>
+                  <option value="summary">Summary</option>
+                  <option value="status">Status</option>
+                  <option value="assignee">Assignee</option>
+                  <option value="priority">Priority</option>
+                  <option value="updated">Updated</option>
+                </select>
+              </div>
+              <button
+                onClick={() => {
+                  setSortConfig(prev => ({ ...prev, order: prev.order === 'asc' ? 'desc' : 'asc' }));
+                  setStartAt(0); // Reset to first page when sort order changes
+                }}
+                className="flex items-center space-x-1 px-3 py-1.5 border rounded hover:bg-gray-100 dark:hover:bg-gray-600 text-sm"
+              >
+                <span>{sortConfig.order === 'asc' ? '↑' : '↓'}</span>
+                <span>{sortConfig.order === 'asc' ? 'Ascending' : 'Descending'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {renderContent()} 
     </div>
   );

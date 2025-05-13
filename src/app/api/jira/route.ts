@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
       targetEndpoint, 
       jiraApiMethod,  
       jiraApiParams,  
-      jiraApiBody     
+      jiraApiBody,
+      sortField,
+      sortOrder     
     } = clientPayload;
 
     let finalTargetEndpoint: string;
@@ -70,7 +72,34 @@ export async function POST(request: NextRequest) {
         expand: ["renderedFields", "names", "schema"],
         fieldsByKeys: false,
       };
-      console.log(`(Proxy) JQL for search: ${pageConfig.jql}`);
+
+      // Add sorting if specified
+      if (sortField) {
+        const sortFieldMap: { [key: string]: string } = {
+          'key': 'key',
+          'summary': 'summary',
+          'status': 'status',
+          'assignee': 'assignee',
+          'priority': 'priority',
+          'updated': 'updated'
+        };
+
+        const jiraSortField = sortFieldMap[sortField];
+        if (jiraSortField) {
+          // Remove any existing ORDER BY clause
+          let jql = pageConfig.jql.trim();
+          jql = jql.replace(/\s+ORDER\s+BY\s+.*$/i, '');
+          
+          // Add the new ORDER BY clause
+          jql = `${jql} ORDER BY ${jiraSortField} ${sortOrder || 'desc'}`;
+          finalJiraApiBody.jql = jql;
+        }
+      }
+
+      console.log(`(Proxy) JQL for search: ${finalJiraApiBody.jql}`);
+      if (sortField) {
+        console.log(`(Proxy) Sorting by: ${sortField} ${sortOrder}`);
+      }
     } else if (targetEndpoint && jiraApiMethod) {
       // Mode 2: Direct proxy for a given endpoint and method (e.g., get specific issue)
       console.log(`(Proxy) Operating in Mode 2: Direct API call. Endpoint=${targetEndpoint}, Method=${jiraApiMethod}`);
