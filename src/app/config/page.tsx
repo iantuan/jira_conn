@@ -2,8 +2,8 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { useAtom } from 'jotai';
-import { jiraConfigAtom, jiraConnectionApiAtom, jiraPagesApiAtom } from '@/store/jiraStore';
-import { useJiraConnectionSettings, useJiraPageConfigs, JiraConnectionClientResponse } from '@/hooks/useConfig';
+import { jiraConfigAtom, jiraConnectionApiAtom, jiraPagesApiAtom, jiraPageGroupsApiAtom } from '@/store/jiraStore';
+import { useJiraConnectionSettings, useJiraPageConfigs, useJiraPageGroups, JiraConnectionClientResponse } from '@/hooks/useConfig';
 import { useTestJiraConnection } from '@/hooks/useJira';
 import Link from 'next/link';
 import { JiraPage } from '@/types/jira';
@@ -49,8 +49,18 @@ const PageConfigFormSchema = z.object({
   description: z.string().optional(),
   jql: z.string().min(1, "JQL query is required"),
   type: z.enum(['issue', 'epic']).default('issue'),
+  groupId: z.string().nullable().optional(),
 });
 type PageConfigFormValues = z.infer<typeof PageConfigFormSchema>;
+
+// Schema for Group Config Form
+const GroupConfigFormSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  order: z.number().optional(),
+});
+type GroupConfigFormValues = z.infer<typeof GroupConfigFormSchema>;
 
 export default function ConfigPage() {
   const { data: session, status } = useSession();
@@ -59,11 +69,13 @@ export default function ConfigPage() {
   // SWR hooks for data fetching
   const { settings: jiraApiSettings, isLoading: isLoadingConnection, mutateConnectionSettings, isError: connectionError } = useJiraConnectionSettings();
   const { pages: jiraApiPages, isLoadingPages, mutatePageConfigs, isErrorPages } = useJiraPageConfigs();
+  const { groups: jiraApiGroups, isLoading: isLoadingGroups, mutatePageGroups, isError: isErrorGroups } = useJiraPageGroups();
 
   // Jotai atoms to sync with API data for other components to use (transitional)
   const [_, setJiraConfigAtom] = useAtom(jiraConfigAtom); // Write-only for syncing
   const [__, setJiraConnectionApiAtom] = useAtom(jiraConnectionApiAtom);
   const [___, setJiraPagesApiAtom] = useAtom(jiraPagesApiAtom);
+  const [____, setJiraPageGroupsApiAtom] = useAtom(jiraPageGroupsApiAtom);
 
   // Local form states
   const [showApiToken, setShowApiToken] = useState(false);
@@ -71,6 +83,10 @@ export default function ConfigPage() {
   const [isAddingPage, setIsAddingPage] = useState(false);
   const [showJQLHelp, setShowJQLHelp] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
+  
+  // Group form states
+  const [editingGroup, setEditingGroup] = useState<GroupConfigFormValues | null>(null);
+  const [isAddingGroup, setIsAddingGroup] = useState(false);
 
   const { data: testConnectionResult, isLoading: isTestingConnection, mutate: testJiraApiConnection } = useTestJiraConnection(); // This hook might need to be adapted or its functionality integrated directly
 
@@ -111,7 +127,24 @@ export default function ConfigPage() {
       title: '',
       description: '',
       jql: '',
-      type: 'issue'
+      type: 'issue',
+      groupId: null
+    }
+  });
+
+  // React Hook Form for Group Config Modal
+  const {
+    register: registerGroupConfig,
+    handleSubmit: handleSubmitGroupConfig,
+    reset: resetGroupConfigForm,
+    formState: { errors: groupConfigErrors, isSubmitting: isSubmittingGroupConfig },
+    setValue: setGroupConfigValue,
+  } = useForm<GroupConfigFormValues>({
+    resolver: zodResolver(GroupConfigFormSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      order: 0
     }
   });
 
@@ -143,12 +176,19 @@ export default function ConfigPage() {
         sortBy: p.sortBy,
         sortOrder: p.sortOrder,
         ownerId: p.ownerId,
+        groupId: p.groupId,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt
       }));
       setJiraConfigAtom(prev => ({ ...prev, pages: clientPages }));
     }
   }, [jiraApiPages, setJiraPagesApiAtom, setJiraConfigAtom]);
+
+  useEffect(() => {
+    if (jiraApiGroups) {
+      setJiraPageGroupsApiAtom(jiraApiGroups);
+    }
+  }, [jiraApiGroups, setJiraPageGroupsApiAtom]);
 
   // Auth redirection
   useEffect(() => {
@@ -220,8 +260,8 @@ export default function ConfigPage() {
   const handleAddPageClick = () => {
     if (session?.user?.role !== 'ADMIN') return;
     setIsAddingPage(true);
-    setEditingPage({ title: '', jql: '', description: '', type: 'issue' }); // Reset form for new page
-    resetPageConfigForm({ title: '', jql: '', description: '', type: 'issue' });
+    setEditingPage({ title: '', jql: '', description: '', type: 'issue', groupId: null }); // Reset form for new page
+    resetPageConfigForm({ title: '', jql: '', description: '', type: 'issue', groupId: null });
     setShowJQLHelp(false);
   };
 
@@ -233,14 +273,16 @@ export default function ConfigPage() {
       title: page.title,
       jql: page.jql,
       description: page.description || '',
-      type: page.type as 'issue' | 'epic'
+      type: page.type as 'issue' | 'epic',
+      groupId: page.groupId
     });
     resetPageConfigForm({
       id: page.id,
       title: page.title,
       jql: page.jql,
       description: page.description || '',
-      type: page.type as 'issue' | 'epic'
+      type: page.type as 'issue' | 'epic',
+      groupId: page.groupId
     });
     setShowJQLHelp(false);
   };
@@ -281,6 +323,77 @@ export default function ConfigPage() {
         alert('Page deleted!');
       } catch (error: any) {
         setGeneralError(error.message || 'Could not delete page.');
+      }
+    }
+  };
+
+  // Handlers for Group Config Modal
+  const handleAddGroupClick = () => {
+    if (session?.user?.role !== 'ADMIN') return;
+    setIsAddingGroup(true);
+    setEditingGroup({ name: '', description: '', order: 0 }); // Reset form for new group
+    resetGroupConfigForm({ name: '', description: '', order: 0 });
+  };
+  
+  const handleEditGroupClick = (group: any) => {
+    if (session?.user?.role !== 'ADMIN') return;
+    setIsAddingGroup(false);
+    setEditingGroup({
+      id: group.id,
+      name: group.name,
+      description: group.description || '',
+      order: group.order
+    });
+    resetGroupConfigForm({
+      id: group.id,
+      name: group.name,
+      description: group.description || '',
+      order: group.order
+    });
+  };
+  
+  const onSaveGroupConfig: SubmitHandler<GroupConfigFormValues> = async (data) => {
+    if (session?.user?.role !== 'ADMIN') return;
+    setGeneralError(null);
+    const url = isAddingGroup ? '/api/config/groups' : `/api/config/groups/${editingGroup?.id}`;
+    const method = isAddingGroup ? 'POST' : 'PUT';
+    
+    try {
+      const response = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Failed to save group');
+      
+      mutatePageGroups(); // Revalidate SWR data for groups
+      setEditingGroup(null);
+      setIsAddingGroup(false);
+      alert(isAddingGroup ? 'Group added!' : 'Group updated!');
+    } catch (error: any) {
+      setGeneralError(error.message || 'Could not save group configuration.');
+    }
+  };
+  
+  const handleDeleteGroup = async (groupId: string) => {
+    if (session?.user?.role !== 'ADMIN') return;
+    if (window.confirm("您確定要刪除此分組嗎？這將移除所有頁面與此分組的關聯，但不會刪除頁面本身。")) {
+      setGeneralError(null);
+      try {
+        const response = await fetch(`/api/config/groups/${groupId}`, {
+          method: 'DELETE',
+        });
+        
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Failed to delete group');
+        
+        mutatePageGroups();
+        mutatePageConfigs(); // Refresh pages as well since their groupId associations will be cleared
+        alert('Group deleted!');
+      } catch (error: any) {
+        setGeneralError(error.message || 'Could not delete group.');
       }
     }
   };
@@ -376,7 +489,40 @@ export default function ConfigPage() {
           </form>
         </section>
 
-      {/* Pages Configuration */}
+      {/* Page Groups Configuration */}
+      <section className="jira-card">
+        <div className="p-5 border-b border-card-border flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">分組設定</h2>
+          <button onClick={handleAddGroupClick} className="btn btn-secondary"><PlusIcon />新增分組</button>
+        </div>
+        <div className="p-5">
+          {(!jiraApiGroups || jiraApiGroups.length === 0) && !isLoadingGroups ? (
+            <p className="text-gray-500 dark:text-gray-400 italic py-4 text-center">尚未設定任何分組。點擊「新增分組」開始。</p>
+          ) : isLoadingGroups ? (
+             <div className="text-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-color mx-auto"></div><p className="mt-2 text-sm text-gray-500">載入分組...</p></div>
+          ) : (
+            <div className="space-y-4">
+              {jiraApiGroups?.map((group: any) => (
+                <div key={group.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                  <div className="flex-grow">
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-100">{group.name}</h3>
+                    {group.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{group.description}</p>}
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                      包含 {group.pages?.length || 0} 個頁面
+                    </p>
+                  </div>
+                  <div className="flex space-x-2 flex-shrink-0 mt-2 sm:mt-0">
+                    <button onClick={() => handleEditGroupClick(group)} className="p-2 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 text-primary-color" aria-label="Edit group"><EditIcon /></button>
+                    <button onClick={() => handleDeleteGroup(group.id)} className="p-2 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-accent-color" aria-label="Delete group"><DeleteIcon /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Pages Configuration - Update to include group selection */}
       <section className="jira-card">
         <div className="p-5 border-b border-card-border flex justify-between items-center">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">查詢頁面設定</h2>
@@ -389,30 +535,38 @@ export default function ConfigPage() {
              <div className="text-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-color mx-auto"></div><p className="mt-2 text-sm text-gray-500">載入頁面...</p></div>
           ) : (
             <div className="space-y-4">
-              {jiraApiPages?.map((page) => (
-                <div key={page.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-                  <div className="flex-grow">
-                    <div className="flex items-center">
-                      <h3 className="font-semibold text-gray-800 dark:text-gray-100">{page.title}</h3>
-                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                        {page.type === 'epic' ? 'Epic' : 'Issue'}
-                      </span>
+              {jiraApiPages?.map((page) => {
+                const groupName = jiraApiGroups?.find(g => g.id === page.groupId)?.name;
+                return (
+                  <div key={page.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                    <div className="flex-grow">
+                      <div className="flex items-center">
+                        <h3 className="font-semibold text-gray-800 dark:text-gray-100">{page.title}</h3>
+                        <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                          {page.type === 'epic' ? 'Epic' : 'Issue'}
+                        </span>
+                        {groupName && (
+                          <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                            {groupName}
+                          </span>
+                        )}
+                      </div>
+                      {page.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{page.description}</p>}
+                      <p className="text-xs font-mono bg-gray-100 dark:bg-gray-700 p-1.5 mt-1.5 rounded-md inline-block break-all">{page.jql}</p>
                     </div>
-                    {page.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{page.description}</p>}
-                    <p className="text-xs font-mono bg-gray-100 dark:bg-gray-700 p-1.5 mt-1.5 rounded-md inline-block break-all">{page.jql}</p>
+                    <div className="flex space-x-2 flex-shrink-0 mt-2 sm:mt-0">
+                      <button onClick={() => handleEditPageClick(page)} className="p-2 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 text-primary-color" aria-label="Edit page"><EditIcon /></button>
+                      <button onClick={() => handleDeletePage(page.id)} className="p-2 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-accent-color" aria-label="Delete page"><DeleteIcon /></button>
+                    </div>
                   </div>
-                  <div className="flex space-x-2 flex-shrink-0 mt-2 sm:mt-0">
-                    <button onClick={() => handleEditPageClick(page)} className="p-2 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/30 text-primary-color" aria-label="Edit page"><EditIcon /></button>
-                    <button onClick={() => handleDeletePage(page.id)} className="p-2 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 text-accent-color" aria-label="Delete page"><DeleteIcon /></button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </section>
           
-      {/* Page Edit Modal */}      
+      {/* Page Edit Modal - Updated to include group selection */}      
       {editingPage && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <form onSubmit={handleSubmitPageConfig(onSavePageConfig)} className="bg-card-bg p-6 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col jira-card">
@@ -446,6 +600,24 @@ export default function ConfigPage() {
                 </p>
               </div>
               <div>
+                <label htmlFor="groupId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  所屬分組 (選填)
+                </label>
+                <select
+                  id="groupId"
+                  {...registerPageConfig("groupId")}
+                  className="form-select w-full"
+                >
+                  <option value="">無分組</option>
+                  {jiraApiGroups?.map((group: any) => (
+                    <option key={group.id} value={group.id}>{group.name}</option>
+                  ))}
+                </select>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  選擇一個分組來組織側邊欄中的頁面
+                </p>
+              </div>
+              <div>
                 <div className="flex justify-between items-center mb-1">
                   <label htmlFor="page-jql" className="block text-sm font-medium text-gray-700 dark:text-gray-300">JQL 查詢語句</label>
                   <button type="button" onClick={() => setShowJQLHelp(!showJQLHelp)} className="text-xs btn btn-ghost py-1 px-2">{showJQLHelp ? '隱藏範例' : '顯示範例'}</button>
@@ -458,6 +630,39 @@ export default function ConfigPage() {
             <div className="flex justify-end space-x-3 pt-5 mt-auto border-t border-card-border">
               <button type="button" onClick={() => { setEditingPage(null); setIsAddingPage(false); setShowJQLHelp(false); }} className="btn btn-ghost">取消</button>
               <button type="submit" className="btn btn-primary" disabled={isSubmittingPageConfig}>{isSubmittingPageConfig ? '儲存中...' : '儲存頁面'}</button>
+            </div>
+          </form>
+        </div>
+      )}
+      
+      {/* Group Edit Modal */}
+      {editingGroup && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <form onSubmit={handleSubmitGroupConfig(onSaveGroupConfig)} className="bg-card-bg p-6 rounded-lg shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col jira-card">
+            <h3 className="text-xl font-semibold mb-5 text-gray-800 dark:text-gray-100">
+              {isAddingGroup ? '新增分組' : '編輯分組'}
+            </h3>
+            <div className="space-y-5 overflow-y-auto pr-2 flex-grow">
+              <div>
+                <label htmlFor="group-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">名稱</label>
+                <input id="group-name" type="text" {...registerGroupConfig("name")} className="w-full p-2.5 input-field" />
+                {groupConfigErrors.name && <p className="form-error">{groupConfigErrors.name.message}</p>}
+              </div>
+              <div>
+                <label htmlFor="group-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">描述 (選填)</label>
+                <input id="group-description" type="text" {...registerGroupConfig("description")} className="w-full p-2.5 input-field" />
+              </div>
+              <div>
+                <label htmlFor="group-order" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">顯示順序</label>
+                <input id="group-order" type="number" {...registerGroupConfig("order")} className="w-full p-2.5 input-field" />
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  數字越小排序越前面
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 pt-5 mt-auto border-t border-card-border">
+              <button type="button" onClick={() => { setEditingGroup(null); setIsAddingGroup(false); }} className="btn btn-ghost">取消</button>
+              <button type="submit" className="btn btn-primary" disabled={isSubmittingGroupConfig}>{isSubmittingGroupConfig ? '儲存中...' : '儲存分組'}</button>
             </div>
           </form>
         </div>

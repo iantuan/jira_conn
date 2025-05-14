@@ -16,6 +16,7 @@ const pageConfigSchema = z.object({
   description: z.string().optional(),
   jql: z.string().min(1, "JQL query is required"),
   type: z.enum(['issue', 'epic']).default('issue'),
+  groupId: z.string().nullable().optional(),
   // columns, sortBy, sortOrder can be added if needed for backend storage
 });
 
@@ -55,6 +56,8 @@ export async function POST(req: NextRequest) {
         title,
         description,
         jql,
+        type: validation.data.type,
+        groupId: validation.data.groupId,
         // ownerId: session.user.id, // If making pages user-specific in future
       },
     });

@@ -8,6 +8,17 @@ export interface JiraPage {
   sortBy: string | null;
   sortOrder: string | null;
   ownerId: string | null;
+  groupId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface JiraPageGroup {
+  id: string;
+  name: string;
+  description: string | null;
+  order: number;
+  pages?: JiraPage[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -17,6 +28,7 @@ export interface JiraConfig {
   email: string;
   apiToken: string;
   pages: JiraPage[];
+  groups?: JiraPageGroup[];
 }
 
 interface JiraPriority {

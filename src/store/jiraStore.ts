@@ -1,14 +1,15 @@
 import { atom } from 'jotai';
 // import { atomWithStorage } from 'jotai/utils'; // No longer using atomWithStorage for jiraConfigAtom
-import { JiraConfig, JiraPage } from '@/types/jira'; // Keep these client-side types for now
-import { JiraPageConfig, JiraConnectionSetting } from '@/generated/prisma'; // For data from API
+import { JiraConfig, JiraPage, JiraPageGroup } from '@/types/jira'; // Keep these client-side types for now
+import { JiraPageConfig, JiraPageGroup as PrismaJiraPageGroup, JiraConnectionSetting } from '@/generated/prisma'; // For data from API
 
 // Default empty configuration for the client-side atom
 const defaultClientConfig: JiraConfig = {
   baseUrl: '',
   email: '',
   apiToken: '', // This will effectively store the token fetched for client-side operations or indicate presence
-  pages: []
+  pages: [],
+  groups: []
 };
 
 // This atom will now be populated from API data via SWR hooks in the ConfigPage or a global initializer.
@@ -23,6 +24,8 @@ export const jiraConnectionApiAtom = atom<Partial<JiraConnectionSetting & { hasA
 // Atom to store the raw API response for JIRA page configurations
 export const jiraPagesApiAtom = atom<JiraPageConfig[]>([]);
 
+// Atom to store the raw API response for JIRA page groups
+export const jiraPageGroupsApiAtom = atom<PrismaJiraPageGroup[]>([]);
 
 // Current selected page ID (can remain as is, managed by client)
 export const currentPageIdAtom = atom<string | null>(null); // Kept atomWithStorage for user selection persistence

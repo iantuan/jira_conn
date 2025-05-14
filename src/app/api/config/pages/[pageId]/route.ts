@@ -12,6 +12,7 @@ const pageConfigUpdateSchema = z.object({
   description: z.string().optional().nullable(), // Allow null to clear description
   jql: z.string().min(1, "JQL query is required").optional(),
   type: z.enum(['issue', 'epic']).optional(),
+  groupId: z.string().nullable().optional(),
   // columns, sortBy, sortOrder can be added if needed for backend storage
 });
 

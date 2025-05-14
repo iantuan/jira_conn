@@ -145,6 +145,29 @@ body {
   margin-bottom: 0.25rem; /* Space between items */
 }
 
+.sidebar-item-child {
+  padding-left: 2rem; /* Indent for child items */
+  font-size: 0.8125rem; /* Slightly smaller font */
+}
+
+.sidebar-group-header {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  color: rgb(var(--sidebar-text));
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 6px; /* Rounded corners for items */
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem; /* Space between items */
+}
+
+.sidebar-group-header:hover {
+  background-color: rgb(var(--sidebar-hover-bg));
+  color: rgb(var(--foreground-rgb)); /* Darker text on hover */
+}
+
 .sidebar-item:hover {
   background-color: rgb(var(--sidebar-hover-bg));
   color: rgb(var(--foreground-rgb)); /* Darker text on hover */

@@ -1,5 +1,5 @@
 import useSWR from 'swr';
-import { JiraConnectionSetting, JiraPageConfig } from '@/generated/prisma'; // Or from @/types if you have specific client types
+import { JiraConnectionSetting, JiraPageConfig, JiraPageGroup } from '@/generated/prisma'; // Or from @/types if you have specific client types
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -37,5 +37,16 @@ export function useJiraPageConfigs() {
     isLoadingPages: isLoading,
     isErrorPages: error,
     mutatePageConfigs: mutate,
+  };
+}
+
+// Hook for Jira Page Groups
+export function useJiraPageGroups() {
+  const { data, error, mutate, isLoading } = useSWR<JiraPageGroup[]>('/api/config/groups', fetcher);
+  return {
+    groups: data,
+    isLoading,
+    isError: error,
+    mutatePageGroups: mutate,
   };
 } 

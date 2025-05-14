@@ -40,17 +40,29 @@ model JiraConnectionSetting {
   // @@unique([id]) 
 }
 
+model JiraPageGroup {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  order       Int              @default(0) // For controlling display order
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  pages       JiraPageConfig[]
+}
+
 model JiraPageConfig {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   title       String
   description String?
   jql         String
-  type        String   @default("issue") // "issue" or "epic"
+  type        String         @default("issue") // "issue" or "epic"
   columns     String? // Storing as JSON string: "[\"summary\", \"status\"]"
   sortBy      String?
   sortOrder   String? // "ASC" or "DESC"
   ownerId     String? // Optional: If pages are user-specific in the future
   // owner       User?   @relation(fields: [ownerId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  groupId     String?
+  group       JiraPageGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }

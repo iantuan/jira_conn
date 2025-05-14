@@ -24,6 +24,11 @@ export type User = $Result.DefaultSelection<Prisma.$UserPayload>
  */
 export type JiraConnectionSetting = $Result.DefaultSelection<Prisma.$JiraConnectionSettingPayload>
 /**
+ * Model JiraPageGroup
+ * 
+ */
+export type JiraPageGroup = $Result.DefaultSelection<Prisma.$JiraPageGroupPayload>
+/**
  * Model JiraPageConfig
  * 
  */
@@ -190,6 +195,16 @@ export class PrismaClient<
     * ```
     */
   get jiraConnectionSetting(): Prisma.JiraConnectionSettingDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.jiraPageGroup`: Exposes CRUD operations for the **JiraPageGroup** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more JiraPageGroups
+    * const jiraPageGroups = await prisma.jiraPageGroup.findMany()
+    * ```
+    */
+  get jiraPageGroup(): Prisma.JiraPageGroupDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.jiraPageConfig`: Exposes CRUD operations for the **JiraPageConfig** model.
@@ -642,6 +657,7 @@ export namespace Prisma {
   export const ModelName: {
     User: 'User',
     JiraConnectionSetting: 'JiraConnectionSetting',
+    JiraPageGroup: 'JiraPageGroup',
     JiraPageConfig: 'JiraPageConfig'
   };
 
@@ -661,7 +677,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "jiraConnectionSetting" | "jiraPageConfig"
+      modelProps: "user" | "jiraConnectionSetting" | "jiraPageGroup" | "jiraPageConfig"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -810,6 +826,80 @@ export namespace Prisma {
           count: {
             args: Prisma.JiraConnectionSettingCountArgs<ExtArgs>
             result: $Utils.Optional<JiraConnectionSettingCountAggregateOutputType> | number
+          }
+        }
+      }
+      JiraPageGroup: {
+        payload: Prisma.$JiraPageGroupPayload<ExtArgs>
+        fields: Prisma.JiraPageGroupFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.JiraPageGroupFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.JiraPageGroupFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload>
+          }
+          findFirst: {
+            args: Prisma.JiraPageGroupFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.JiraPageGroupFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload>
+          }
+          findMany: {
+            args: Prisma.JiraPageGroupFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload>[]
+          }
+          create: {
+            args: Prisma.JiraPageGroupCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload>
+          }
+          createMany: {
+            args: Prisma.JiraPageGroupCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.JiraPageGroupCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload>[]
+          }
+          delete: {
+            args: Prisma.JiraPageGroupDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload>
+          }
+          update: {
+            args: Prisma.JiraPageGroupUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload>
+          }
+          deleteMany: {
+            args: Prisma.JiraPageGroupDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.JiraPageGroupUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.JiraPageGroupUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload>[]
+          }
+          upsert: {
+            args: Prisma.JiraPageGroupUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$JiraPageGroupPayload>
+          }
+          aggregate: {
+            args: Prisma.JiraPageGroupAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateJiraPageGroup>
+          }
+          groupBy: {
+            args: Prisma.JiraPageGroupGroupByArgs<ExtArgs>
+            result: $Utils.Optional<JiraPageGroupGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.JiraPageGroupCountArgs<ExtArgs>
+            result: $Utils.Optional<JiraPageGroupCountAggregateOutputType> | number
           }
         }
       }
@@ -973,6 +1063,7 @@ export namespace Prisma {
   export type GlobalOmitConfig = {
     user?: UserOmit
     jiraConnectionSetting?: JiraConnectionSettingOmit
+    jiraPageGroup?: JiraPageGroupOmit
     jiraPageConfig?: JiraPageConfigOmit
   }
 
@@ -1062,6 +1153,36 @@ export namespace Prisma {
    * Count Types
    */
 
+
+  /**
+   * Count Type JiraPageGroupCountOutputType
+   */
+
+  export type JiraPageGroupCountOutputType = {
+    pages: number
+  }
+
+  export type JiraPageGroupCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    pages?: boolean | JiraPageGroupCountOutputTypeCountPagesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * JiraPageGroupCountOutputType without action
+   */
+  export type JiraPageGroupCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroupCountOutputType
+     */
+    select?: JiraPageGroupCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * JiraPageGroupCountOutputType without action
+   */
+  export type JiraPageGroupCountOutputTypeCountPagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: JiraPageConfigWhereInput
+  }
 
 
   /**
@@ -3068,6 +3189,1121 @@ export namespace Prisma {
 
 
   /**
+   * Model JiraPageGroup
+   */
+
+  export type AggregateJiraPageGroup = {
+    _count: JiraPageGroupCountAggregateOutputType | null
+    _avg: JiraPageGroupAvgAggregateOutputType | null
+    _sum: JiraPageGroupSumAggregateOutputType | null
+    _min: JiraPageGroupMinAggregateOutputType | null
+    _max: JiraPageGroupMaxAggregateOutputType | null
+  }
+
+  export type JiraPageGroupAvgAggregateOutputType = {
+    order: number | null
+  }
+
+  export type JiraPageGroupSumAggregateOutputType = {
+    order: number | null
+  }
+
+  export type JiraPageGroupMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    order: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type JiraPageGroupMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    description: string | null
+    order: number | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type JiraPageGroupCountAggregateOutputType = {
+    id: number
+    name: number
+    description: number
+    order: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type JiraPageGroupAvgAggregateInputType = {
+    order?: true
+  }
+
+  export type JiraPageGroupSumAggregateInputType = {
+    order?: true
+  }
+
+  export type JiraPageGroupMinAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type JiraPageGroupMaxAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type JiraPageGroupCountAggregateInputType = {
+    id?: true
+    name?: true
+    description?: true
+    order?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type JiraPageGroupAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which JiraPageGroup to aggregate.
+     */
+    where?: JiraPageGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JiraPageGroups to fetch.
+     */
+    orderBy?: JiraPageGroupOrderByWithRelationInput | JiraPageGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: JiraPageGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JiraPageGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JiraPageGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned JiraPageGroups
+    **/
+    _count?: true | JiraPageGroupCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: JiraPageGroupAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: JiraPageGroupSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: JiraPageGroupMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: JiraPageGroupMaxAggregateInputType
+  }
+
+  export type GetJiraPageGroupAggregateType<T extends JiraPageGroupAggregateArgs> = {
+        [P in keyof T & keyof AggregateJiraPageGroup]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateJiraPageGroup[P]>
+      : GetScalarType<T[P], AggregateJiraPageGroup[P]>
+  }
+
+
+
+
+  export type JiraPageGroupGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: JiraPageGroupWhereInput
+    orderBy?: JiraPageGroupOrderByWithAggregationInput | JiraPageGroupOrderByWithAggregationInput[]
+    by: JiraPageGroupScalarFieldEnum[] | JiraPageGroupScalarFieldEnum
+    having?: JiraPageGroupScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: JiraPageGroupCountAggregateInputType | true
+    _avg?: JiraPageGroupAvgAggregateInputType
+    _sum?: JiraPageGroupSumAggregateInputType
+    _min?: JiraPageGroupMinAggregateInputType
+    _max?: JiraPageGroupMaxAggregateInputType
+  }
+
+  export type JiraPageGroupGroupByOutputType = {
+    id: string
+    name: string
+    description: string | null
+    order: number
+    createdAt: Date
+    updatedAt: Date
+    _count: JiraPageGroupCountAggregateOutputType | null
+    _avg: JiraPageGroupAvgAggregateOutputType | null
+    _sum: JiraPageGroupSumAggregateOutputType | null
+    _min: JiraPageGroupMinAggregateOutputType | null
+    _max: JiraPageGroupMaxAggregateOutputType | null
+  }
+
+  type GetJiraPageGroupGroupByPayload<T extends JiraPageGroupGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<JiraPageGroupGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof JiraPageGroupGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], JiraPageGroupGroupByOutputType[P]>
+            : GetScalarType<T[P], JiraPageGroupGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type JiraPageGroupSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    pages?: boolean | JiraPageGroup$pagesArgs<ExtArgs>
+    _count?: boolean | JiraPageGroupCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["jiraPageGroup"]>
+
+  export type JiraPageGroupSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["jiraPageGroup"]>
+
+  export type JiraPageGroupSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["jiraPageGroup"]>
+
+  export type JiraPageGroupSelectScalar = {
+    id?: boolean
+    name?: boolean
+    description?: boolean
+    order?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type JiraPageGroupOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "order" | "createdAt" | "updatedAt", ExtArgs["result"]["jiraPageGroup"]>
+  export type JiraPageGroupInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    pages?: boolean | JiraPageGroup$pagesArgs<ExtArgs>
+    _count?: boolean | JiraPageGroupCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type JiraPageGroupIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type JiraPageGroupIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $JiraPageGroupPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "JiraPageGroup"
+    objects: {
+      pages: Prisma.$JiraPageConfigPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      description: string | null
+      order: number
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["jiraPageGroup"]>
+    composites: {}
+  }
+
+  type JiraPageGroupGetPayload<S extends boolean | null | undefined | JiraPageGroupDefaultArgs> = $Result.GetResult<Prisma.$JiraPageGroupPayload, S>
+
+  type JiraPageGroupCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<JiraPageGroupFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: JiraPageGroupCountAggregateInputType | true
+    }
+
+  export interface JiraPageGroupDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['JiraPageGroup'], meta: { name: 'JiraPageGroup' } }
+    /**
+     * Find zero or one JiraPageGroup that matches the filter.
+     * @param {JiraPageGroupFindUniqueArgs} args - Arguments to find a JiraPageGroup
+     * @example
+     * // Get one JiraPageGroup
+     * const jiraPageGroup = await prisma.jiraPageGroup.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends JiraPageGroupFindUniqueArgs>(args: SelectSubset<T, JiraPageGroupFindUniqueArgs<ExtArgs>>): Prisma__JiraPageGroupClient<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one JiraPageGroup that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {JiraPageGroupFindUniqueOrThrowArgs} args - Arguments to find a JiraPageGroup
+     * @example
+     * // Get one JiraPageGroup
+     * const jiraPageGroup = await prisma.jiraPageGroup.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends JiraPageGroupFindUniqueOrThrowArgs>(args: SelectSubset<T, JiraPageGroupFindUniqueOrThrowArgs<ExtArgs>>): Prisma__JiraPageGroupClient<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first JiraPageGroup that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JiraPageGroupFindFirstArgs} args - Arguments to find a JiraPageGroup
+     * @example
+     * // Get one JiraPageGroup
+     * const jiraPageGroup = await prisma.jiraPageGroup.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends JiraPageGroupFindFirstArgs>(args?: SelectSubset<T, JiraPageGroupFindFirstArgs<ExtArgs>>): Prisma__JiraPageGroupClient<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first JiraPageGroup that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JiraPageGroupFindFirstOrThrowArgs} args - Arguments to find a JiraPageGroup
+     * @example
+     * // Get one JiraPageGroup
+     * const jiraPageGroup = await prisma.jiraPageGroup.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends JiraPageGroupFindFirstOrThrowArgs>(args?: SelectSubset<T, JiraPageGroupFindFirstOrThrowArgs<ExtArgs>>): Prisma__JiraPageGroupClient<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more JiraPageGroups that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JiraPageGroupFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all JiraPageGroups
+     * const jiraPageGroups = await prisma.jiraPageGroup.findMany()
+     * 
+     * // Get first 10 JiraPageGroups
+     * const jiraPageGroups = await prisma.jiraPageGroup.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const jiraPageGroupWithIdOnly = await prisma.jiraPageGroup.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends JiraPageGroupFindManyArgs>(args?: SelectSubset<T, JiraPageGroupFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a JiraPageGroup.
+     * @param {JiraPageGroupCreateArgs} args - Arguments to create a JiraPageGroup.
+     * @example
+     * // Create one JiraPageGroup
+     * const JiraPageGroup = await prisma.jiraPageGroup.create({
+     *   data: {
+     *     // ... data to create a JiraPageGroup
+     *   }
+     * })
+     * 
+     */
+    create<T extends JiraPageGroupCreateArgs>(args: SelectSubset<T, JiraPageGroupCreateArgs<ExtArgs>>): Prisma__JiraPageGroupClient<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many JiraPageGroups.
+     * @param {JiraPageGroupCreateManyArgs} args - Arguments to create many JiraPageGroups.
+     * @example
+     * // Create many JiraPageGroups
+     * const jiraPageGroup = await prisma.jiraPageGroup.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends JiraPageGroupCreateManyArgs>(args?: SelectSubset<T, JiraPageGroupCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many JiraPageGroups and returns the data saved in the database.
+     * @param {JiraPageGroupCreateManyAndReturnArgs} args - Arguments to create many JiraPageGroups.
+     * @example
+     * // Create many JiraPageGroups
+     * const jiraPageGroup = await prisma.jiraPageGroup.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many JiraPageGroups and only return the `id`
+     * const jiraPageGroupWithIdOnly = await prisma.jiraPageGroup.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends JiraPageGroupCreateManyAndReturnArgs>(args?: SelectSubset<T, JiraPageGroupCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a JiraPageGroup.
+     * @param {JiraPageGroupDeleteArgs} args - Arguments to delete one JiraPageGroup.
+     * @example
+     * // Delete one JiraPageGroup
+     * const JiraPageGroup = await prisma.jiraPageGroup.delete({
+     *   where: {
+     *     // ... filter to delete one JiraPageGroup
+     *   }
+     * })
+     * 
+     */
+    delete<T extends JiraPageGroupDeleteArgs>(args: SelectSubset<T, JiraPageGroupDeleteArgs<ExtArgs>>): Prisma__JiraPageGroupClient<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one JiraPageGroup.
+     * @param {JiraPageGroupUpdateArgs} args - Arguments to update one JiraPageGroup.
+     * @example
+     * // Update one JiraPageGroup
+     * const jiraPageGroup = await prisma.jiraPageGroup.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends JiraPageGroupUpdateArgs>(args: SelectSubset<T, JiraPageGroupUpdateArgs<ExtArgs>>): Prisma__JiraPageGroupClient<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more JiraPageGroups.
+     * @param {JiraPageGroupDeleteManyArgs} args - Arguments to filter JiraPageGroups to delete.
+     * @example
+     * // Delete a few JiraPageGroups
+     * const { count } = await prisma.jiraPageGroup.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends JiraPageGroupDeleteManyArgs>(args?: SelectSubset<T, JiraPageGroupDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more JiraPageGroups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JiraPageGroupUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many JiraPageGroups
+     * const jiraPageGroup = await prisma.jiraPageGroup.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends JiraPageGroupUpdateManyArgs>(args: SelectSubset<T, JiraPageGroupUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more JiraPageGroups and returns the data updated in the database.
+     * @param {JiraPageGroupUpdateManyAndReturnArgs} args - Arguments to update many JiraPageGroups.
+     * @example
+     * // Update many JiraPageGroups
+     * const jiraPageGroup = await prisma.jiraPageGroup.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more JiraPageGroups and only return the `id`
+     * const jiraPageGroupWithIdOnly = await prisma.jiraPageGroup.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends JiraPageGroupUpdateManyAndReturnArgs>(args: SelectSubset<T, JiraPageGroupUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one JiraPageGroup.
+     * @param {JiraPageGroupUpsertArgs} args - Arguments to update or create a JiraPageGroup.
+     * @example
+     * // Update or create a JiraPageGroup
+     * const jiraPageGroup = await prisma.jiraPageGroup.upsert({
+     *   create: {
+     *     // ... data to create a JiraPageGroup
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the JiraPageGroup we want to update
+     *   }
+     * })
+     */
+    upsert<T extends JiraPageGroupUpsertArgs>(args: SelectSubset<T, JiraPageGroupUpsertArgs<ExtArgs>>): Prisma__JiraPageGroupClient<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of JiraPageGroups.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JiraPageGroupCountArgs} args - Arguments to filter JiraPageGroups to count.
+     * @example
+     * // Count the number of JiraPageGroups
+     * const count = await prisma.jiraPageGroup.count({
+     *   where: {
+     *     // ... the filter for the JiraPageGroups we want to count
+     *   }
+     * })
+    **/
+    count<T extends JiraPageGroupCountArgs>(
+      args?: Subset<T, JiraPageGroupCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], JiraPageGroupCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a JiraPageGroup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JiraPageGroupAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends JiraPageGroupAggregateArgs>(args: Subset<T, JiraPageGroupAggregateArgs>): Prisma.PrismaPromise<GetJiraPageGroupAggregateType<T>>
+
+    /**
+     * Group by JiraPageGroup.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {JiraPageGroupGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends JiraPageGroupGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: JiraPageGroupGroupByArgs['orderBy'] }
+        : { orderBy?: JiraPageGroupGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, JiraPageGroupGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetJiraPageGroupGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the JiraPageGroup model
+   */
+  readonly fields: JiraPageGroupFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for JiraPageGroup.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__JiraPageGroupClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    pages<T extends JiraPageGroup$pagesArgs<ExtArgs> = {}>(args?: Subset<T, JiraPageGroup$pagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$JiraPageConfigPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the JiraPageGroup model
+   */
+  interface JiraPageGroupFieldRefs {
+    readonly id: FieldRef<"JiraPageGroup", 'String'>
+    readonly name: FieldRef<"JiraPageGroup", 'String'>
+    readonly description: FieldRef<"JiraPageGroup", 'String'>
+    readonly order: FieldRef<"JiraPageGroup", 'Int'>
+    readonly createdAt: FieldRef<"JiraPageGroup", 'DateTime'>
+    readonly updatedAt: FieldRef<"JiraPageGroup", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * JiraPageGroup findUnique
+   */
+  export type JiraPageGroupFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which JiraPageGroup to fetch.
+     */
+    where: JiraPageGroupWhereUniqueInput
+  }
+
+  /**
+   * JiraPageGroup findUniqueOrThrow
+   */
+  export type JiraPageGroupFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which JiraPageGroup to fetch.
+     */
+    where: JiraPageGroupWhereUniqueInput
+  }
+
+  /**
+   * JiraPageGroup findFirst
+   */
+  export type JiraPageGroupFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which JiraPageGroup to fetch.
+     */
+    where?: JiraPageGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JiraPageGroups to fetch.
+     */
+    orderBy?: JiraPageGroupOrderByWithRelationInput | JiraPageGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for JiraPageGroups.
+     */
+    cursor?: JiraPageGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JiraPageGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JiraPageGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of JiraPageGroups.
+     */
+    distinct?: JiraPageGroupScalarFieldEnum | JiraPageGroupScalarFieldEnum[]
+  }
+
+  /**
+   * JiraPageGroup findFirstOrThrow
+   */
+  export type JiraPageGroupFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which JiraPageGroup to fetch.
+     */
+    where?: JiraPageGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JiraPageGroups to fetch.
+     */
+    orderBy?: JiraPageGroupOrderByWithRelationInput | JiraPageGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for JiraPageGroups.
+     */
+    cursor?: JiraPageGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JiraPageGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JiraPageGroups.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of JiraPageGroups.
+     */
+    distinct?: JiraPageGroupScalarFieldEnum | JiraPageGroupScalarFieldEnum[]
+  }
+
+  /**
+   * JiraPageGroup findMany
+   */
+  export type JiraPageGroupFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+    /**
+     * Filter, which JiraPageGroups to fetch.
+     */
+    where?: JiraPageGroupWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of JiraPageGroups to fetch.
+     */
+    orderBy?: JiraPageGroupOrderByWithRelationInput | JiraPageGroupOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing JiraPageGroups.
+     */
+    cursor?: JiraPageGroupWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` JiraPageGroups from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` JiraPageGroups.
+     */
+    skip?: number
+    distinct?: JiraPageGroupScalarFieldEnum | JiraPageGroupScalarFieldEnum[]
+  }
+
+  /**
+   * JiraPageGroup create
+   */
+  export type JiraPageGroupCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+    /**
+     * The data needed to create a JiraPageGroup.
+     */
+    data: XOR<JiraPageGroupCreateInput, JiraPageGroupUncheckedCreateInput>
+  }
+
+  /**
+   * JiraPageGroup createMany
+   */
+  export type JiraPageGroupCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many JiraPageGroups.
+     */
+    data: JiraPageGroupCreateManyInput | JiraPageGroupCreateManyInput[]
+  }
+
+  /**
+   * JiraPageGroup createManyAndReturn
+   */
+  export type JiraPageGroupCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * The data used to create many JiraPageGroups.
+     */
+    data: JiraPageGroupCreateManyInput | JiraPageGroupCreateManyInput[]
+  }
+
+  /**
+   * JiraPageGroup update
+   */
+  export type JiraPageGroupUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+    /**
+     * The data needed to update a JiraPageGroup.
+     */
+    data: XOR<JiraPageGroupUpdateInput, JiraPageGroupUncheckedUpdateInput>
+    /**
+     * Choose, which JiraPageGroup to update.
+     */
+    where: JiraPageGroupWhereUniqueInput
+  }
+
+  /**
+   * JiraPageGroup updateMany
+   */
+  export type JiraPageGroupUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update JiraPageGroups.
+     */
+    data: XOR<JiraPageGroupUpdateManyMutationInput, JiraPageGroupUncheckedUpdateManyInput>
+    /**
+     * Filter which JiraPageGroups to update
+     */
+    where?: JiraPageGroupWhereInput
+    /**
+     * Limit how many JiraPageGroups to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * JiraPageGroup updateManyAndReturn
+   */
+  export type JiraPageGroupUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * The data used to update JiraPageGroups.
+     */
+    data: XOR<JiraPageGroupUpdateManyMutationInput, JiraPageGroupUncheckedUpdateManyInput>
+    /**
+     * Filter which JiraPageGroups to update
+     */
+    where?: JiraPageGroupWhereInput
+    /**
+     * Limit how many JiraPageGroups to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * JiraPageGroup upsert
+   */
+  export type JiraPageGroupUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+    /**
+     * The filter to search for the JiraPageGroup to update in case it exists.
+     */
+    where: JiraPageGroupWhereUniqueInput
+    /**
+     * In case the JiraPageGroup found by the `where` argument doesn't exist, create a new JiraPageGroup with this data.
+     */
+    create: XOR<JiraPageGroupCreateInput, JiraPageGroupUncheckedCreateInput>
+    /**
+     * In case the JiraPageGroup was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<JiraPageGroupUpdateInput, JiraPageGroupUncheckedUpdateInput>
+  }
+
+  /**
+   * JiraPageGroup delete
+   */
+  export type JiraPageGroupDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+    /**
+     * Filter which JiraPageGroup to delete.
+     */
+    where: JiraPageGroupWhereUniqueInput
+  }
+
+  /**
+   * JiraPageGroup deleteMany
+   */
+  export type JiraPageGroupDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which JiraPageGroups to delete
+     */
+    where?: JiraPageGroupWhereInput
+    /**
+     * Limit how many JiraPageGroups to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * JiraPageGroup.pages
+   */
+  export type JiraPageGroup$pagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageConfig
+     */
+    select?: JiraPageConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageConfig
+     */
+    omit?: JiraPageConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
+    where?: JiraPageConfigWhereInput
+    orderBy?: JiraPageConfigOrderByWithRelationInput | JiraPageConfigOrderByWithRelationInput[]
+    cursor?: JiraPageConfigWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: JiraPageConfigScalarFieldEnum | JiraPageConfigScalarFieldEnum[]
+  }
+
+  /**
+   * JiraPageGroup without action
+   */
+  export type JiraPageGroupDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model JiraPageConfig
    */
 
@@ -3087,6 +4323,7 @@ export namespace Prisma {
     sortBy: string | null
     sortOrder: string | null
     ownerId: string | null
+    groupId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -3101,6 +4338,7 @@ export namespace Prisma {
     sortBy: string | null
     sortOrder: string | null
     ownerId: string | null
+    groupId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -3115,6 +4353,7 @@ export namespace Prisma {
     sortBy: number
     sortOrder: number
     ownerId: number
+    groupId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -3131,6 +4370,7 @@ export namespace Prisma {
     sortBy?: true
     sortOrder?: true
     ownerId?: true
+    groupId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -3145,6 +4385,7 @@ export namespace Prisma {
     sortBy?: true
     sortOrder?: true
     ownerId?: true
+    groupId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -3159,6 +4400,7 @@ export namespace Prisma {
     sortBy?: true
     sortOrder?: true
     ownerId?: true
+    groupId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -3246,6 +4488,7 @@ export namespace Prisma {
     sortBy: string | null
     sortOrder: string | null
     ownerId: string | null
+    groupId: string | null
     createdAt: Date
     updatedAt: Date
     _count: JiraPageConfigCountAggregateOutputType | null
@@ -3277,8 +4520,10 @@ export namespace Prisma {
     sortBy?: boolean
     sortOrder?: boolean
     ownerId?: boolean
+    groupId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    group?: boolean | JiraPageConfig$groupArgs<ExtArgs>
   }, ExtArgs["result"]["jiraPageConfig"]>
 
   export type JiraPageConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3291,8 +4536,10 @@ export namespace Prisma {
     sortBy?: boolean
     sortOrder?: boolean
     ownerId?: boolean
+    groupId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    group?: boolean | JiraPageConfig$groupArgs<ExtArgs>
   }, ExtArgs["result"]["jiraPageConfig"]>
 
   export type JiraPageConfigSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -3305,8 +4552,10 @@ export namespace Prisma {
     sortBy?: boolean
     sortOrder?: boolean
     ownerId?: boolean
+    groupId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    group?: boolean | JiraPageConfig$groupArgs<ExtArgs>
   }, ExtArgs["result"]["jiraPageConfig"]>
 
   export type JiraPageConfigSelectScalar = {
@@ -3319,15 +4568,27 @@ export namespace Prisma {
     sortBy?: boolean
     sortOrder?: boolean
     ownerId?: boolean
+    groupId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type JiraPageConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "jql" | "type" | "columns" | "sortBy" | "sortOrder" | "ownerId" | "createdAt" | "updatedAt", ExtArgs["result"]["jiraPageConfig"]>
+  export type JiraPageConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "jql" | "type" | "columns" | "sortBy" | "sortOrder" | "ownerId" | "groupId" | "createdAt" | "updatedAt", ExtArgs["result"]["jiraPageConfig"]>
+  export type JiraPageConfigInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | JiraPageConfig$groupArgs<ExtArgs>
+  }
+  export type JiraPageConfigIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | JiraPageConfig$groupArgs<ExtArgs>
+  }
+  export type JiraPageConfigIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    group?: boolean | JiraPageConfig$groupArgs<ExtArgs>
+  }
 
   export type $JiraPageConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "JiraPageConfig"
-    objects: {}
+    objects: {
+      group: Prisma.$JiraPageGroupPayload<ExtArgs> | null
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       title: string
@@ -3338,6 +4599,7 @@ export namespace Prisma {
       sortBy: string | null
       sortOrder: string | null
       ownerId: string | null
+      groupId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["jiraPageConfig"]>
@@ -3734,6 +4996,7 @@ export namespace Prisma {
    */
   export interface Prisma__JiraPageConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    group<T extends JiraPageConfig$groupArgs<ExtArgs> = {}>(args?: Subset<T, JiraPageConfig$groupArgs<ExtArgs>>): Prisma__JiraPageGroupClient<$Result.GetResult<Prisma.$JiraPageGroupPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3772,6 +5035,7 @@ export namespace Prisma {
     readonly sortBy: FieldRef<"JiraPageConfig", 'String'>
     readonly sortOrder: FieldRef<"JiraPageConfig", 'String'>
     readonly ownerId: FieldRef<"JiraPageConfig", 'String'>
+    readonly groupId: FieldRef<"JiraPageConfig", 'String'>
     readonly createdAt: FieldRef<"JiraPageConfig", 'DateTime'>
     readonly updatedAt: FieldRef<"JiraPageConfig", 'DateTime'>
   }
@@ -3791,6 +5055,10 @@ export namespace Prisma {
      */
     omit?: JiraPageConfigOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
+    /**
      * Filter, which JiraPageConfig to fetch.
      */
     where: JiraPageConfigWhereUniqueInput
@@ -3809,6 +5077,10 @@ export namespace Prisma {
      */
     omit?: JiraPageConfigOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
+    /**
      * Filter, which JiraPageConfig to fetch.
      */
     where: JiraPageConfigWhereUniqueInput
@@ -3826,6 +5098,10 @@ export namespace Prisma {
      * Omit specific fields from the JiraPageConfig
      */
     omit?: JiraPageConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
     /**
      * Filter, which JiraPageConfig to fetch.
      */
@@ -3875,6 +5151,10 @@ export namespace Prisma {
      */
     omit?: JiraPageConfigOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
+    /**
      * Filter, which JiraPageConfig to fetch.
      */
     where?: JiraPageConfigWhereInput
@@ -3923,6 +5203,10 @@ export namespace Prisma {
      */
     omit?: JiraPageConfigOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
+    /**
      * Filter, which JiraPageConfigs to fetch.
      */
     where?: JiraPageConfigWhereInput
@@ -3966,6 +5250,10 @@ export namespace Prisma {
      */
     omit?: JiraPageConfigOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
+    /**
      * The data needed to create a JiraPageConfig.
      */
     data: XOR<JiraPageConfigCreateInput, JiraPageConfigUncheckedCreateInput>
@@ -3997,6 +5285,10 @@ export namespace Prisma {
      * The data used to create many JiraPageConfigs.
      */
     data: JiraPageConfigCreateManyInput | JiraPageConfigCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -4011,6 +5303,10 @@ export namespace Prisma {
      * Omit specific fields from the JiraPageConfig
      */
     omit?: JiraPageConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
     /**
      * The data needed to update a JiraPageConfig.
      */
@@ -4063,6 +5359,10 @@ export namespace Prisma {
      * Limit how many JiraPageConfigs to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -4077,6 +5377,10 @@ export namespace Prisma {
      * Omit specific fields from the JiraPageConfig
      */
     omit?: JiraPageConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
     /**
      * The filter to search for the JiraPageConfig to update in case it exists.
      */
@@ -4104,6 +5408,10 @@ export namespace Prisma {
      */
     omit?: JiraPageConfigOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
+    /**
      * Filter which JiraPageConfig to delete.
      */
     where: JiraPageConfigWhereUniqueInput
@@ -4124,6 +5432,25 @@ export namespace Prisma {
   }
 
   /**
+   * JiraPageConfig.group
+   */
+  export type JiraPageConfig$groupArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the JiraPageGroup
+     */
+    select?: JiraPageGroupSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the JiraPageGroup
+     */
+    omit?: JiraPageGroupOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageGroupInclude<ExtArgs> | null
+    where?: JiraPageGroupWhereInput
+  }
+
+  /**
    * JiraPageConfig without action
    */
   export type JiraPageConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4135,6 +5462,10 @@ export namespace Prisma {
      * Omit specific fields from the JiraPageConfig
      */
     omit?: JiraPageConfigOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: JiraPageConfigInclude<ExtArgs> | null
   }
 
 
@@ -4172,6 +5503,18 @@ export namespace Prisma {
   export type JiraConnectionSettingScalarFieldEnum = (typeof JiraConnectionSettingScalarFieldEnum)[keyof typeof JiraConnectionSettingScalarFieldEnum]
 
 
+  export const JiraPageGroupScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description',
+    order: 'order',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type JiraPageGroupScalarFieldEnum = (typeof JiraPageGroupScalarFieldEnum)[keyof typeof JiraPageGroupScalarFieldEnum]
+
+
   export const JiraPageConfigScalarFieldEnum: {
     id: 'id',
     title: 'title',
@@ -4182,6 +5525,7 @@ export namespace Prisma {
     sortBy: 'sortBy',
     sortOrder: 'sortOrder',
     ownerId: 'ownerId',
+    groupId: 'groupId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -4235,6 +5579,13 @@ export namespace Prisma {
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
     
   /**
    * Deep Input Types
@@ -4350,6 +5701,68 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"JiraConnectionSetting"> | Date | string
   }
 
+  export type JiraPageGroupWhereInput = {
+    AND?: JiraPageGroupWhereInput | JiraPageGroupWhereInput[]
+    OR?: JiraPageGroupWhereInput[]
+    NOT?: JiraPageGroupWhereInput | JiraPageGroupWhereInput[]
+    id?: StringFilter<"JiraPageGroup"> | string
+    name?: StringFilter<"JiraPageGroup"> | string
+    description?: StringNullableFilter<"JiraPageGroup"> | string | null
+    order?: IntFilter<"JiraPageGroup"> | number
+    createdAt?: DateTimeFilter<"JiraPageGroup"> | Date | string
+    updatedAt?: DateTimeFilter<"JiraPageGroup"> | Date | string
+    pages?: JiraPageConfigListRelationFilter
+  }
+
+  export type JiraPageGroupOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    pages?: JiraPageConfigOrderByRelationAggregateInput
+  }
+
+  export type JiraPageGroupWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: JiraPageGroupWhereInput | JiraPageGroupWhereInput[]
+    OR?: JiraPageGroupWhereInput[]
+    NOT?: JiraPageGroupWhereInput | JiraPageGroupWhereInput[]
+    name?: StringFilter<"JiraPageGroup"> | string
+    description?: StringNullableFilter<"JiraPageGroup"> | string | null
+    order?: IntFilter<"JiraPageGroup"> | number
+    createdAt?: DateTimeFilter<"JiraPageGroup"> | Date | string
+    updatedAt?: DateTimeFilter<"JiraPageGroup"> | Date | string
+    pages?: JiraPageConfigListRelationFilter
+  }, "id">
+
+  export type JiraPageGroupOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrderInput | SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: JiraPageGroupCountOrderByAggregateInput
+    _avg?: JiraPageGroupAvgOrderByAggregateInput
+    _max?: JiraPageGroupMaxOrderByAggregateInput
+    _min?: JiraPageGroupMinOrderByAggregateInput
+    _sum?: JiraPageGroupSumOrderByAggregateInput
+  }
+
+  export type JiraPageGroupScalarWhereWithAggregatesInput = {
+    AND?: JiraPageGroupScalarWhereWithAggregatesInput | JiraPageGroupScalarWhereWithAggregatesInput[]
+    OR?: JiraPageGroupScalarWhereWithAggregatesInput[]
+    NOT?: JiraPageGroupScalarWhereWithAggregatesInput | JiraPageGroupScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"JiraPageGroup"> | string
+    name?: StringWithAggregatesFilter<"JiraPageGroup"> | string
+    description?: StringNullableWithAggregatesFilter<"JiraPageGroup"> | string | null
+    order?: IntWithAggregatesFilter<"JiraPageGroup"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"JiraPageGroup"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"JiraPageGroup"> | Date | string
+  }
+
   export type JiraPageConfigWhereInput = {
     AND?: JiraPageConfigWhereInput | JiraPageConfigWhereInput[]
     OR?: JiraPageConfigWhereInput[]
@@ -4363,8 +5776,10 @@ export namespace Prisma {
     sortBy?: StringNullableFilter<"JiraPageConfig"> | string | null
     sortOrder?: StringNullableFilter<"JiraPageConfig"> | string | null
     ownerId?: StringNullableFilter<"JiraPageConfig"> | string | null
+    groupId?: StringNullableFilter<"JiraPageConfig"> | string | null
     createdAt?: DateTimeFilter<"JiraPageConfig"> | Date | string
     updatedAt?: DateTimeFilter<"JiraPageConfig"> | Date | string
+    group?: XOR<JiraPageGroupNullableScalarRelationFilter, JiraPageGroupWhereInput> | null
   }
 
   export type JiraPageConfigOrderByWithRelationInput = {
@@ -4377,8 +5792,10 @@ export namespace Prisma {
     sortBy?: SortOrderInput | SortOrder
     sortOrder?: SortOrderInput | SortOrder
     ownerId?: SortOrderInput | SortOrder
+    groupId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    group?: JiraPageGroupOrderByWithRelationInput
   }
 
   export type JiraPageConfigWhereUniqueInput = Prisma.AtLeast<{
@@ -4394,8 +5811,10 @@ export namespace Prisma {
     sortBy?: StringNullableFilter<"JiraPageConfig"> | string | null
     sortOrder?: StringNullableFilter<"JiraPageConfig"> | string | null
     ownerId?: StringNullableFilter<"JiraPageConfig"> | string | null
+    groupId?: StringNullableFilter<"JiraPageConfig"> | string | null
     createdAt?: DateTimeFilter<"JiraPageConfig"> | Date | string
     updatedAt?: DateTimeFilter<"JiraPageConfig"> | Date | string
+    group?: XOR<JiraPageGroupNullableScalarRelationFilter, JiraPageGroupWhereInput> | null
   }, "id">
 
   export type JiraPageConfigOrderByWithAggregationInput = {
@@ -4408,6 +5827,7 @@ export namespace Prisma {
     sortBy?: SortOrderInput | SortOrder
     sortOrder?: SortOrderInput | SortOrder
     ownerId?: SortOrderInput | SortOrder
+    groupId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: JiraPageConfigCountOrderByAggregateInput
@@ -4428,6 +5848,7 @@ export namespace Prisma {
     sortBy?: StringNullableWithAggregatesFilter<"JiraPageConfig"> | string | null
     sortOrder?: StringNullableWithAggregatesFilter<"JiraPageConfig"> | string | null
     ownerId?: StringNullableWithAggregatesFilter<"JiraPageConfig"> | string | null
+    groupId?: StringNullableWithAggregatesFilter<"JiraPageConfig"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"JiraPageConfig"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"JiraPageConfig"> | Date | string
   }
@@ -4551,6 +5972,73 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type JiraPageGroupCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    pages?: JiraPageConfigCreateNestedManyWithoutGroupInput
+  }
+
+  export type JiraPageGroupUncheckedCreateInput = {
+    id?: string
+    name: string
+    description?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    pages?: JiraPageConfigUncheckedCreateNestedManyWithoutGroupInput
+  }
+
+  export type JiraPageGroupUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pages?: JiraPageConfigUpdateManyWithoutGroupNestedInput
+  }
+
+  export type JiraPageGroupUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    pages?: JiraPageConfigUncheckedUpdateManyWithoutGroupNestedInput
+  }
+
+  export type JiraPageGroupCreateManyInput = {
+    id?: string
+    name: string
+    description?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JiraPageGroupUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JiraPageGroupUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type JiraPageConfigCreateInput = {
     id?: string
     title: string
@@ -4563,6 +6051,7 @@ export namespace Prisma {
     ownerId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    group?: JiraPageGroupCreateNestedOneWithoutPagesInput
   }
 
   export type JiraPageConfigUncheckedCreateInput = {
@@ -4575,6 +6064,7 @@ export namespace Prisma {
     sortBy?: string | null
     sortOrder?: string | null
     ownerId?: string | null
+    groupId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -4591,6 +6081,7 @@ export namespace Prisma {
     ownerId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    group?: JiraPageGroupUpdateOneWithoutPagesNestedInput
   }
 
   export type JiraPageConfigUncheckedUpdateInput = {
@@ -4603,6 +6094,7 @@ export namespace Prisma {
     sortBy?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: NullableStringFieldUpdateOperationsInput | string | null
     ownerId?: NullableStringFieldUpdateOperationsInput | string | null
+    groupId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4617,6 +6109,7 @@ export namespace Prisma {
     sortBy?: string | null
     sortOrder?: string | null
     ownerId?: string | null
+    groupId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -4645,6 +6138,7 @@ export namespace Prisma {
     sortBy?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: NullableStringFieldUpdateOperationsInput | string | null
     ownerId?: NullableStringFieldUpdateOperationsInput | string | null
+    groupId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -4809,6 +6303,83 @@ export namespace Prisma {
     _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type JiraPageConfigListRelationFilter = {
+    every?: JiraPageConfigWhereInput
+    some?: JiraPageConfigWhereInput
+    none?: JiraPageConfigWhereInput
+  }
+
+  export type JiraPageConfigOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type JiraPageGroupCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type JiraPageGroupAvgOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type JiraPageGroupMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type JiraPageGroupMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    description?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type JiraPageGroupSumOrderByAggregateInput = {
+    order?: SortOrder
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type JiraPageGroupNullableScalarRelationFilter = {
+    is?: JiraPageGroupWhereInput | null
+    isNot?: JiraPageGroupWhereInput | null
+  }
+
   export type JiraPageConfigCountOrderByAggregateInput = {
     id?: SortOrder
     title?: SortOrder
@@ -4819,6 +6390,7 @@ export namespace Prisma {
     sortBy?: SortOrder
     sortOrder?: SortOrder
     ownerId?: SortOrder
+    groupId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -4833,6 +6405,7 @@ export namespace Prisma {
     sortBy?: SortOrder
     sortOrder?: SortOrder
     ownerId?: SortOrder
+    groupId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -4847,6 +6420,7 @@ export namespace Prisma {
     sortBy?: SortOrder
     sortOrder?: SortOrder
     ownerId?: SortOrder
+    groupId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -4865,6 +6439,72 @@ export namespace Prisma {
 
   export type NullableStringFieldUpdateOperationsInput = {
     set?: string | null
+  }
+
+  export type JiraPageConfigCreateNestedManyWithoutGroupInput = {
+    create?: XOR<JiraPageConfigCreateWithoutGroupInput, JiraPageConfigUncheckedCreateWithoutGroupInput> | JiraPageConfigCreateWithoutGroupInput[] | JiraPageConfigUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: JiraPageConfigCreateOrConnectWithoutGroupInput | JiraPageConfigCreateOrConnectWithoutGroupInput[]
+    createMany?: JiraPageConfigCreateManyGroupInputEnvelope
+    connect?: JiraPageConfigWhereUniqueInput | JiraPageConfigWhereUniqueInput[]
+  }
+
+  export type JiraPageConfigUncheckedCreateNestedManyWithoutGroupInput = {
+    create?: XOR<JiraPageConfigCreateWithoutGroupInput, JiraPageConfigUncheckedCreateWithoutGroupInput> | JiraPageConfigCreateWithoutGroupInput[] | JiraPageConfigUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: JiraPageConfigCreateOrConnectWithoutGroupInput | JiraPageConfigCreateOrConnectWithoutGroupInput[]
+    createMany?: JiraPageConfigCreateManyGroupInputEnvelope
+    connect?: JiraPageConfigWhereUniqueInput | JiraPageConfigWhereUniqueInput[]
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type JiraPageConfigUpdateManyWithoutGroupNestedInput = {
+    create?: XOR<JiraPageConfigCreateWithoutGroupInput, JiraPageConfigUncheckedCreateWithoutGroupInput> | JiraPageConfigCreateWithoutGroupInput[] | JiraPageConfigUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: JiraPageConfigCreateOrConnectWithoutGroupInput | JiraPageConfigCreateOrConnectWithoutGroupInput[]
+    upsert?: JiraPageConfigUpsertWithWhereUniqueWithoutGroupInput | JiraPageConfigUpsertWithWhereUniqueWithoutGroupInput[]
+    createMany?: JiraPageConfigCreateManyGroupInputEnvelope
+    set?: JiraPageConfigWhereUniqueInput | JiraPageConfigWhereUniqueInput[]
+    disconnect?: JiraPageConfigWhereUniqueInput | JiraPageConfigWhereUniqueInput[]
+    delete?: JiraPageConfigWhereUniqueInput | JiraPageConfigWhereUniqueInput[]
+    connect?: JiraPageConfigWhereUniqueInput | JiraPageConfigWhereUniqueInput[]
+    update?: JiraPageConfigUpdateWithWhereUniqueWithoutGroupInput | JiraPageConfigUpdateWithWhereUniqueWithoutGroupInput[]
+    updateMany?: JiraPageConfigUpdateManyWithWhereWithoutGroupInput | JiraPageConfigUpdateManyWithWhereWithoutGroupInput[]
+    deleteMany?: JiraPageConfigScalarWhereInput | JiraPageConfigScalarWhereInput[]
+  }
+
+  export type JiraPageConfigUncheckedUpdateManyWithoutGroupNestedInput = {
+    create?: XOR<JiraPageConfigCreateWithoutGroupInput, JiraPageConfigUncheckedCreateWithoutGroupInput> | JiraPageConfigCreateWithoutGroupInput[] | JiraPageConfigUncheckedCreateWithoutGroupInput[]
+    connectOrCreate?: JiraPageConfigCreateOrConnectWithoutGroupInput | JiraPageConfigCreateOrConnectWithoutGroupInput[]
+    upsert?: JiraPageConfigUpsertWithWhereUniqueWithoutGroupInput | JiraPageConfigUpsertWithWhereUniqueWithoutGroupInput[]
+    createMany?: JiraPageConfigCreateManyGroupInputEnvelope
+    set?: JiraPageConfigWhereUniqueInput | JiraPageConfigWhereUniqueInput[]
+    disconnect?: JiraPageConfigWhereUniqueInput | JiraPageConfigWhereUniqueInput[]
+    delete?: JiraPageConfigWhereUniqueInput | JiraPageConfigWhereUniqueInput[]
+    connect?: JiraPageConfigWhereUniqueInput | JiraPageConfigWhereUniqueInput[]
+    update?: JiraPageConfigUpdateWithWhereUniqueWithoutGroupInput | JiraPageConfigUpdateWithWhereUniqueWithoutGroupInput[]
+    updateMany?: JiraPageConfigUpdateManyWithWhereWithoutGroupInput | JiraPageConfigUpdateManyWithWhereWithoutGroupInput[]
+    deleteMany?: JiraPageConfigScalarWhereInput | JiraPageConfigScalarWhereInput[]
+  }
+
+  export type JiraPageGroupCreateNestedOneWithoutPagesInput = {
+    create?: XOR<JiraPageGroupCreateWithoutPagesInput, JiraPageGroupUncheckedCreateWithoutPagesInput>
+    connectOrCreate?: JiraPageGroupCreateOrConnectWithoutPagesInput
+    connect?: JiraPageGroupWhereUniqueInput
+  }
+
+  export type JiraPageGroupUpdateOneWithoutPagesNestedInput = {
+    create?: XOR<JiraPageGroupCreateWithoutPagesInput, JiraPageGroupUncheckedCreateWithoutPagesInput>
+    connectOrCreate?: JiraPageGroupCreateOrConnectWithoutPagesInput
+    upsert?: JiraPageGroupUpsertWithoutPagesInput
+    disconnect?: JiraPageGroupWhereInput | boolean
+    delete?: JiraPageGroupWhereInput | boolean
+    connect?: JiraPageGroupWhereUniqueInput
+    update?: XOR<XOR<JiraPageGroupUpdateToOneWithWhereWithoutPagesInput, JiraPageGroupUpdateWithoutPagesInput>, JiraPageGroupUncheckedUpdateWithoutPagesInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -4991,6 +6631,212 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type JiraPageConfigCreateWithoutGroupInput = {
+    id?: string
+    title: string
+    description?: string | null
+    jql: string
+    type?: string
+    columns?: string | null
+    sortBy?: string | null
+    sortOrder?: string | null
+    ownerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JiraPageConfigUncheckedCreateWithoutGroupInput = {
+    id?: string
+    title: string
+    description?: string | null
+    jql: string
+    type?: string
+    columns?: string | null
+    sortBy?: string | null
+    sortOrder?: string | null
+    ownerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JiraPageConfigCreateOrConnectWithoutGroupInput = {
+    where: JiraPageConfigWhereUniqueInput
+    create: XOR<JiraPageConfigCreateWithoutGroupInput, JiraPageConfigUncheckedCreateWithoutGroupInput>
+  }
+
+  export type JiraPageConfigCreateManyGroupInputEnvelope = {
+    data: JiraPageConfigCreateManyGroupInput | JiraPageConfigCreateManyGroupInput[]
+  }
+
+  export type JiraPageConfigUpsertWithWhereUniqueWithoutGroupInput = {
+    where: JiraPageConfigWhereUniqueInput
+    update: XOR<JiraPageConfigUpdateWithoutGroupInput, JiraPageConfigUncheckedUpdateWithoutGroupInput>
+    create: XOR<JiraPageConfigCreateWithoutGroupInput, JiraPageConfigUncheckedCreateWithoutGroupInput>
+  }
+
+  export type JiraPageConfigUpdateWithWhereUniqueWithoutGroupInput = {
+    where: JiraPageConfigWhereUniqueInput
+    data: XOR<JiraPageConfigUpdateWithoutGroupInput, JiraPageConfigUncheckedUpdateWithoutGroupInput>
+  }
+
+  export type JiraPageConfigUpdateManyWithWhereWithoutGroupInput = {
+    where: JiraPageConfigScalarWhereInput
+    data: XOR<JiraPageConfigUpdateManyMutationInput, JiraPageConfigUncheckedUpdateManyWithoutGroupInput>
+  }
+
+  export type JiraPageConfigScalarWhereInput = {
+    AND?: JiraPageConfigScalarWhereInput | JiraPageConfigScalarWhereInput[]
+    OR?: JiraPageConfigScalarWhereInput[]
+    NOT?: JiraPageConfigScalarWhereInput | JiraPageConfigScalarWhereInput[]
+    id?: StringFilter<"JiraPageConfig"> | string
+    title?: StringFilter<"JiraPageConfig"> | string
+    description?: StringNullableFilter<"JiraPageConfig"> | string | null
+    jql?: StringFilter<"JiraPageConfig"> | string
+    type?: StringFilter<"JiraPageConfig"> | string
+    columns?: StringNullableFilter<"JiraPageConfig"> | string | null
+    sortBy?: StringNullableFilter<"JiraPageConfig"> | string | null
+    sortOrder?: StringNullableFilter<"JiraPageConfig"> | string | null
+    ownerId?: StringNullableFilter<"JiraPageConfig"> | string | null
+    groupId?: StringNullableFilter<"JiraPageConfig"> | string | null
+    createdAt?: DateTimeFilter<"JiraPageConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"JiraPageConfig"> | Date | string
+  }
+
+  export type JiraPageGroupCreateWithoutPagesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JiraPageGroupUncheckedCreateWithoutPagesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    order?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JiraPageGroupCreateOrConnectWithoutPagesInput = {
+    where: JiraPageGroupWhereUniqueInput
+    create: XOR<JiraPageGroupCreateWithoutPagesInput, JiraPageGroupUncheckedCreateWithoutPagesInput>
+  }
+
+  export type JiraPageGroupUpsertWithoutPagesInput = {
+    update: XOR<JiraPageGroupUpdateWithoutPagesInput, JiraPageGroupUncheckedUpdateWithoutPagesInput>
+    create: XOR<JiraPageGroupCreateWithoutPagesInput, JiraPageGroupUncheckedCreateWithoutPagesInput>
+    where?: JiraPageGroupWhereInput
+  }
+
+  export type JiraPageGroupUpdateToOneWithWhereWithoutPagesInput = {
+    where?: JiraPageGroupWhereInput
+    data: XOR<JiraPageGroupUpdateWithoutPagesInput, JiraPageGroupUncheckedUpdateWithoutPagesInput>
+  }
+
+  export type JiraPageGroupUpdateWithoutPagesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JiraPageGroupUncheckedUpdateWithoutPagesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JiraPageConfigCreateManyGroupInput = {
+    id?: string
+    title: string
+    description?: string | null
+    jql: string
+    type?: string
+    columns?: string | null
+    sortBy?: string | null
+    sortOrder?: string | null
+    ownerId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type JiraPageConfigUpdateWithoutGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    jql?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    columns?: NullableStringFieldUpdateOperationsInput | string | null
+    sortBy?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JiraPageConfigUncheckedUpdateWithoutGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    jql?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    columns?: NullableStringFieldUpdateOperationsInput | string | null
+    sortBy?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type JiraPageConfigUncheckedUpdateManyWithoutGroupInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    jql?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    columns?: NullableStringFieldUpdateOperationsInput | string | null
+    sortBy?: NullableStringFieldUpdateOperationsInput | string | null
+    sortOrder?: NullableStringFieldUpdateOperationsInput | string | null
+    ownerId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

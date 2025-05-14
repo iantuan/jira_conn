@@ -46,6 +46,7 @@ export default function ConfigInitializer() {
         sortBy: p.sortBy || null,
         sortOrder: p.sortOrder || null,
         ownerId: p.ownerId || null,
+        groupId: p.groupId,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt
       }));

@@ -134,6 +134,15 @@ exports.Prisma.JiraConnectionSettingScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.JiraPageGroupScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.JiraPageConfigScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -144,6 +153,7 @@ exports.Prisma.JiraPageConfigScalarFieldEnum = {
   sortBy: 'sortBy',
   sortOrder: 'sortOrder',
   ownerId: 'ownerId',
+  groupId: 'groupId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -165,6 +175,7 @@ exports.UserRole = exports.$Enums.UserRole = {
 exports.Prisma.ModelName = {
   User: 'User',
   JiraConnectionSetting: 'JiraConnectionSetting',
+  JiraPageGroup: 'JiraPageGroup',
   JiraPageConfig: 'JiraPageConfig'
 };
 
