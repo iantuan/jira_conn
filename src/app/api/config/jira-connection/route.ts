@@ -3,7 +3,7 @@ import { PrismaClient } from "@/generated/prisma";
 
 // For POST (Admin only parts)
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 const GLOBAL_JIRA_SETTINGS_ID = "global_jira_settings";

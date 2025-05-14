@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { PrismaClient } from "@/generated/prisma";
 import { z } from 'zod';
 
@@ -17,7 +17,10 @@ const pageConfigUpdateSchema = z.object({
 });
 
 // PUT (Update) a specific Jira Page Config (Admin only)
-export async function PUT(req: NextRequest, { params }: { params: { pageId: string } }) {
+export async function PUT(
+  request: Request,
+  { params }: { params: { pageId: string } }
+) {
   const session = await getServerSession(authOptions);
   const { pageId } = params;
 
@@ -30,7 +33,7 @@ export async function PUT(req: NextRequest, { params }: { params: { pageId: stri
   }
 
   try {
-    const body = await req.json();
+    const body = await request.json();
     const validation = pageConfigUpdateSchema.safeParse(body);
 
     if (!validation.success) {
@@ -62,7 +65,10 @@ export async function PUT(req: NextRequest, { params }: { params: { pageId: stri
 }
 
 // DELETE a specific Jira Page Config (Admin only)
-export async function DELETE(req: NextRequest, { params }: { params: { pageId: string } }) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: { pageId: string } }
+) {
   const session = await getServerSession(authOptions);
   const { pageId } = params;
 

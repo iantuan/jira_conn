@@ -2,9 +2,20 @@
 
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, Suspense } from 'react';
 
-export default function LoginPage() {
+// 顯示載入圖標的組件
+const LoadingSpinner = () => (
+  <div className="flex items-center justify-center min-h-screen bg-background-start-rgb">
+    <div className="jira-card p-8 w-full max-w-md text-center">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-color mx-auto"></div>
+      <p className="mt-3">載入中...</p>
+    </div>
+  </div>
+);
+
+// 包含 useSearchParams 的實際登入表單組件
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
@@ -97,5 +108,14 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+// 主頁面組件，使用 Suspense 包裹 LoginForm
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <LoginForm />
+    </Suspense>
   );
 } 

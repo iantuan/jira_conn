@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { PrismaClient } from "@/generated/prisma";
 import { z } from 'zod';
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 const prisma = new PrismaClient();
 
@@ -14,7 +14,10 @@ const groupConfigSchema = z.object({
 });
 
 // GET a specific Jira Page Group by ID
-export async function GET(req: NextRequest, { params }: { params: { groupId: string } }) {
+export async function GET(
+  request: Request,
+  { params }: { params: { groupId: string } }
+) {
   try {
     const groupId = params.groupId;
     
@@ -37,7 +40,10 @@ export async function GET(req: NextRequest, { params }: { params: { groupId: str
 }
 
 // PUT: Update a page group (Admin only)
-export async function PUT(req: NextRequest, { params }: { params: { groupId: string } }) {
+export async function PUT(
+  request: Request,
+  { params }: { params: { groupId: string } }
+) {
   // Admin authorization check
   const session = await getServerSession(authOptions);
   if (!session || session.user?.role !== 'ADMIN') {
@@ -46,7 +52,7 @@ export async function PUT(req: NextRequest, { params }: { params: { groupId: str
 
   try {
     const groupId = params.groupId;
-    const body = await req.json();
+    const body = await request.json();
     
     // Validate input
     const validation = groupConfigSchema.safeParse(body);
@@ -81,7 +87,10 @@ export async function PUT(req: NextRequest, { params }: { params: { groupId: str
 }
 
 // DELETE: Delete a page group (Admin only)
-export async function DELETE(req: NextRequest, { params }: { params: { groupId: string } }) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: { groupId: string } }
+) {
   // Admin authorization check
   const session = await getServerSession(authOptions);
   if (!session || session.user?.role !== 'ADMIN') {

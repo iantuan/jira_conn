@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        - NEXT_DEBUG=1
+    container_name: jira_conn
+    ports:
+      - "3000:3000"
+    volumes:
+      - jira_data:/app/data
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/app/data/database.db
+      - NEXTAUTH_SECRET=your-strong-secret-key-here
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXT_DEBUG=1
+      - NEXT_SHARP_PATH=/app/node_modules/sharp
+      - NEXT_EXPERIMENTAL_REACT_OVERLAY=1
+    restart: unless-stopped
+
+volumes:
+  jira_data:
+    driver: local 
