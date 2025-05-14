@@ -151,7 +151,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/iantuan/cursor/jira_conn/src/generated/prisma",
+      "value": "/home/iantuan/github/jira_conn/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -165,7 +165,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/iantuan/cursor/jira_conn/prisma/schema.prisma",
+    "sourceFilePath": "/home/iantuan/github/jira_conn/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -179,11 +179,12 @@ const config = {
     "db"
   ],
   "activeProvider": "sqlite",
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": "file:./dev.db"
+        "value": null
       }
     }
   },

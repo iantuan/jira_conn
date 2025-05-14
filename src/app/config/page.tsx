@@ -392,7 +392,12 @@ export default function ConfigPage() {
               {jiraApiPages?.map((page) => (
                 <div key={page.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                   <div className="flex-grow">
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-100">{page.title}</h3>
+                    <div className="flex items-center">
+                      <h3 className="font-semibold text-gray-800 dark:text-gray-100">{page.title}</h3>
+                      <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                        {page.type === 'epic' ? 'Epic' : 'Issue'}
+                      </span>
+                    </div>
                     {page.description && <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{page.description}</p>}
                     <p className="text-xs font-mono bg-gray-100 dark:bg-gray-700 p-1.5 mt-1.5 rounded-md inline-block break-all">{page.jql}</p>
                   </div>

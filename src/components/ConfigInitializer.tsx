@@ -40,10 +40,14 @@ export default function ConfigInitializer() {
         title: p.title,
         description: p.description || '',
         jql: p.jql,
+        type: p.type as 'issue' | 'epic',
         // Ensure other fields from JiraPage type are handled if necessary
-        columns: p.columns ? JSON.parse(p.columns) : undefined, // Assuming columns are stored as JSON string
-        sortBy: p.sortBy || undefined,
-        sortOrder: p.sortOrder as ('ASC' | 'DESC' | undefined) || undefined,
+        columns: p.columns,
+        sortBy: p.sortBy || null,
+        sortOrder: p.sortOrder || null,
+        ownerId: p.ownerId || null,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt
       }));
       setJiraConfigAtom(prev => ({ ...prev, pages: clientPages }));
     }

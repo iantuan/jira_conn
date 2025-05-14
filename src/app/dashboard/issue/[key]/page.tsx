@@ -184,6 +184,14 @@ export default function IssuePage() {
                 </span>
               </div>
             </div>
+            
+            {fields.issuetype && fields.issuetype.name && (
+              <div className="mt-2">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                  {fields.issuetype.name === 'Epic' ? 'Epic' : 'Issue'}
+                </span>
+              </div>
+            )}
           </div>
           
           <div className="p-6">

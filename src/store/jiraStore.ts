@@ -47,8 +47,13 @@ export const currentPageAtom = atom((get) => {
     title: foundPage.title,
     description: foundPage.description || '',
     jql: foundPage.jql,
-    // columns, sortBy, sortOrder would need to be parsed if stored as JSON string in DB
-    // For simplicity, assuming direct compatibility for now.
+    type: foundPage.type as 'issue' | 'epic',
+    columns: foundPage.columns,
+    sortBy: foundPage.sortBy || null,
+    sortOrder: foundPage.sortOrder || null,
+    ownerId: foundPage.ownerId || null,
+    createdAt: foundPage.createdAt,
+    updatedAt: foundPage.updatedAt
   } as JiraPage; // Cast to client-side JiraPage type
 });
 

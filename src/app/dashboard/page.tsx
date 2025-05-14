@@ -358,7 +358,12 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="content-title">{currentPageDetails.title}</h1>
+        <h1 className="content-title flex items-center">
+          {currentPageDetails.title}
+          <span className="ml-2 text-xs font-normal px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+            {currentPageDetails.type === 'epic' ? 'Epic' : 'Issue'}
+          </span>
+        </h1>
         {currentPageDetails.description && 
           <p className="content-description -mt-2 max-w-3xl">{currentPageDetails.description}</p>}
         <div className="text-xs text-gray-500 dark:text-gray-400 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -371,7 +376,12 @@ export default function DashboardPage() {
       {currentPageDetails && (
         <div className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{currentPageDetails.title}</h2>
+            <div className="flex items-center">
+              <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">{currentPageDetails.title}</h2>
+              <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                {currentPageDetails.type === 'epic' ? 'Epic' : 'Issue'}
+              </span>
+            </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <label htmlFor="sortField" className="text-sm text-gray-600 dark:text-gray-300">Sort by:</label>
