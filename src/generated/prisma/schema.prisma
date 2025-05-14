@@ -45,6 +45,7 @@ model JiraPageConfig {
   title       String
   description String?
   jql         String
+  type        String   @default("issue") // "issue" or "epic"
   columns     String? // Storing as JSON string: "[\"summary\", \"status\"]"
   sortBy      String?
   sortOrder   String? // "ASC" or "DESC"

@@ -48,6 +48,7 @@ const PageConfigFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   jql: z.string().min(1, "JQL query is required"),
+  type: z.enum(['issue', 'epic']).default('issue'),
 });
 type PageConfigFormValues = z.infer<typeof PageConfigFormSchema>;
 
@@ -103,8 +104,15 @@ export default function ConfigPage() {
     reset: resetPageConfigForm,
     formState: { errors: pageConfigErrors, isSubmitting: isSubmittingPageConfig },
     setValue: setPageConfigValue,
+    watch: watchPageConfig,
   } = useForm<PageConfigFormValues>({
     resolver: zodResolver(PageConfigFormSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      jql: '',
+      type: 'issue'
+    }
   });
 
   // Effect to populate forms and Jotai atoms when data loads from SWR
@@ -125,7 +133,19 @@ export default function ConfigPage() {
     if (jiraApiPages) {
       setJiraPagesApiAtom(jiraApiPages);
       // Sync with the main jiraConfigAtom (transitional)
-      const clientPages: JiraPage[] = jiraApiPages.map(p => ({ id: p.id, title: p.title, description: p.description || '', jql: p.jql }));
+      const clientPages: JiraPage[] = jiraApiPages.map(p => ({
+        id: p.id,
+        title: p.title,
+        description: p.description || '',
+        jql: p.jql,
+        type: p.type as 'issue' | 'epic',
+        columns: p.columns,
+        sortBy: p.sortBy,
+        sortOrder: p.sortOrder,
+        ownerId: p.ownerId,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt
+      }));
       setJiraConfigAtom(prev => ({ ...prev, pages: clientPages }));
     }
   }, [jiraApiPages, setJiraPagesApiAtom, setJiraConfigAtom]);
@@ -200,16 +220,28 @@ export default function ConfigPage() {
   const handleAddPageClick = () => {
     if (session?.user?.role !== 'ADMIN') return;
     setIsAddingPage(true);
-    setEditingPage({ title: '', jql: '', description: '' }); // Reset form for new page
-    resetPageConfigForm({ title: '', jql: '', description: '' });
+    setEditingPage({ title: '', jql: '', description: '', type: 'issue' }); // Reset form for new page
+    resetPageConfigForm({ title: '', jql: '', description: '', type: 'issue' });
     setShowJQLHelp(false);
   };
 
   const handleEditPageClick = (page: JiraPageConfig) => {
     if (session?.user?.role !== 'ADMIN') return;
     setIsAddingPage(false);
-    setEditingPage({ id: page.id, title: page.title, jql: page.jql, description: page.description || '' });
-    resetPageConfigForm({ id: page.id, title: page.title, jql: page.jql, description: page.description || '' });
+    setEditingPage({
+      id: page.id,
+      title: page.title,
+      jql: page.jql,
+      description: page.description || '',
+      type: page.type as 'issue' | 'epic'
+    });
+    resetPageConfigForm({
+      id: page.id,
+      title: page.title,
+      jql: page.jql,
+      description: page.description || '',
+      type: page.type as 'issue' | 'epic'
+    });
     setShowJQLHelp(false);
   };
 
@@ -391,6 +423,22 @@ export default function ConfigPage() {
               <div>
                 <label htmlFor="page-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">描述 (選填)</label>
                 <input id="page-description" type="text" {...registerPageConfig("description")} className="w-full p-2.5 input-field" />
+              </div>
+              <div>
+                <label htmlFor="type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  頁面類型
+                </label>
+                <select
+                  id="type"
+                  {...registerPageConfig("type")}
+                  className="form-select w-full"
+                >
+                  <option value="issue">一般問題列表</option>
+                  <option value="epic">Epic 與子任務</option>
+                </select>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  {watchPageConfig("type") === 'epic' ? '選擇此類型將顯示 Epic 及其子任務，並支持展開/收起功能。' : '選擇此類型將顯示一般的問題列表。'}
+                </p>
               </div>
               <div>
                 <div className="flex justify-between items-center mb-1">

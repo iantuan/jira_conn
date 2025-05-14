@@ -1,11 +1,15 @@
 export interface JiraPage {
   id: string;
   title: string;
-  description?: string;
+  description: string | null;
   jql: string;
-  columns?: string[];
-  sortBy?: string;
-  sortOrder?: 'ASC' | 'DESC';
+  type: 'issue' | 'epic';
+  columns: string | null;
+  sortBy: string | null;
+  sortOrder: string | null;
+  ownerId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface JiraConfig {

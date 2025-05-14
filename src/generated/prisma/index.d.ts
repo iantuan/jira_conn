@@ -3082,6 +3082,7 @@ export namespace Prisma {
     title: string | null
     description: string | null
     jql: string | null
+    type: string | null
     columns: string | null
     sortBy: string | null
     sortOrder: string | null
@@ -3095,6 +3096,7 @@ export namespace Prisma {
     title: string | null
     description: string | null
     jql: string | null
+    type: string | null
     columns: string | null
     sortBy: string | null
     sortOrder: string | null
@@ -3108,6 +3110,7 @@ export namespace Prisma {
     title: number
     description: number
     jql: number
+    type: number
     columns: number
     sortBy: number
     sortOrder: number
@@ -3123,6 +3126,7 @@ export namespace Prisma {
     title?: true
     description?: true
     jql?: true
+    type?: true
     columns?: true
     sortBy?: true
     sortOrder?: true
@@ -3136,6 +3140,7 @@ export namespace Prisma {
     title?: true
     description?: true
     jql?: true
+    type?: true
     columns?: true
     sortBy?: true
     sortOrder?: true
@@ -3149,6 +3154,7 @@ export namespace Prisma {
     title?: true
     description?: true
     jql?: true
+    type?: true
     columns?: true
     sortBy?: true
     sortOrder?: true
@@ -3235,6 +3241,7 @@ export namespace Prisma {
     title: string
     description: string | null
     jql: string
+    type: string
     columns: string | null
     sortBy: string | null
     sortOrder: string | null
@@ -3265,6 +3272,7 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     jql?: boolean
+    type?: boolean
     columns?: boolean
     sortBy?: boolean
     sortOrder?: boolean
@@ -3278,6 +3286,7 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     jql?: boolean
+    type?: boolean
     columns?: boolean
     sortBy?: boolean
     sortOrder?: boolean
@@ -3291,6 +3300,7 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     jql?: boolean
+    type?: boolean
     columns?: boolean
     sortBy?: boolean
     sortOrder?: boolean
@@ -3304,6 +3314,7 @@ export namespace Prisma {
     title?: boolean
     description?: boolean
     jql?: boolean
+    type?: boolean
     columns?: boolean
     sortBy?: boolean
     sortOrder?: boolean
@@ -3312,7 +3323,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type JiraPageConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "jql" | "columns" | "sortBy" | "sortOrder" | "ownerId" | "createdAt" | "updatedAt", ExtArgs["result"]["jiraPageConfig"]>
+  export type JiraPageConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "description" | "jql" | "type" | "columns" | "sortBy" | "sortOrder" | "ownerId" | "createdAt" | "updatedAt", ExtArgs["result"]["jiraPageConfig"]>
 
   export type $JiraPageConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "JiraPageConfig"
@@ -3322,6 +3333,7 @@ export namespace Prisma {
       title: string
       description: string | null
       jql: string
+      type: string
       columns: string | null
       sortBy: string | null
       sortOrder: string | null
@@ -3755,6 +3767,7 @@ export namespace Prisma {
     readonly title: FieldRef<"JiraPageConfig", 'String'>
     readonly description: FieldRef<"JiraPageConfig", 'String'>
     readonly jql: FieldRef<"JiraPageConfig", 'String'>
+    readonly type: FieldRef<"JiraPageConfig", 'String'>
     readonly columns: FieldRef<"JiraPageConfig", 'String'>
     readonly sortBy: FieldRef<"JiraPageConfig", 'String'>
     readonly sortOrder: FieldRef<"JiraPageConfig", 'String'>
@@ -4164,6 +4177,7 @@ export namespace Prisma {
     title: 'title',
     description: 'description',
     jql: 'jql',
+    type: 'type',
     columns: 'columns',
     sortBy: 'sortBy',
     sortOrder: 'sortOrder',
@@ -4344,6 +4358,7 @@ export namespace Prisma {
     title?: StringFilter<"JiraPageConfig"> | string
     description?: StringNullableFilter<"JiraPageConfig"> | string | null
     jql?: StringFilter<"JiraPageConfig"> | string
+    type?: StringFilter<"JiraPageConfig"> | string
     columns?: StringNullableFilter<"JiraPageConfig"> | string | null
     sortBy?: StringNullableFilter<"JiraPageConfig"> | string | null
     sortOrder?: StringNullableFilter<"JiraPageConfig"> | string | null
@@ -4357,6 +4372,7 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     jql?: SortOrder
+    type?: SortOrder
     columns?: SortOrderInput | SortOrder
     sortBy?: SortOrderInput | SortOrder
     sortOrder?: SortOrderInput | SortOrder
@@ -4373,6 +4389,7 @@ export namespace Prisma {
     title?: StringFilter<"JiraPageConfig"> | string
     description?: StringNullableFilter<"JiraPageConfig"> | string | null
     jql?: StringFilter<"JiraPageConfig"> | string
+    type?: StringFilter<"JiraPageConfig"> | string
     columns?: StringNullableFilter<"JiraPageConfig"> | string | null
     sortBy?: StringNullableFilter<"JiraPageConfig"> | string | null
     sortOrder?: StringNullableFilter<"JiraPageConfig"> | string | null
@@ -4386,6 +4403,7 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrderInput | SortOrder
     jql?: SortOrder
+    type?: SortOrder
     columns?: SortOrderInput | SortOrder
     sortBy?: SortOrderInput | SortOrder
     sortOrder?: SortOrderInput | SortOrder
@@ -4405,6 +4423,7 @@ export namespace Prisma {
     title?: StringWithAggregatesFilter<"JiraPageConfig"> | string
     description?: StringNullableWithAggregatesFilter<"JiraPageConfig"> | string | null
     jql?: StringWithAggregatesFilter<"JiraPageConfig"> | string
+    type?: StringWithAggregatesFilter<"JiraPageConfig"> | string
     columns?: StringNullableWithAggregatesFilter<"JiraPageConfig"> | string | null
     sortBy?: StringNullableWithAggregatesFilter<"JiraPageConfig"> | string | null
     sortOrder?: StringNullableWithAggregatesFilter<"JiraPageConfig"> | string | null
@@ -4537,6 +4556,7 @@ export namespace Prisma {
     title: string
     description?: string | null
     jql: string
+    type?: string
     columns?: string | null
     sortBy?: string | null
     sortOrder?: string | null
@@ -4550,6 +4570,7 @@ export namespace Prisma {
     title: string
     description?: string | null
     jql: string
+    type?: string
     columns?: string | null
     sortBy?: string | null
     sortOrder?: string | null
@@ -4563,6 +4584,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     jql?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
     columns?: NullableStringFieldUpdateOperationsInput | string | null
     sortBy?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: NullableStringFieldUpdateOperationsInput | string | null
@@ -4576,6 +4598,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     jql?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
     columns?: NullableStringFieldUpdateOperationsInput | string | null
     sortBy?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: NullableStringFieldUpdateOperationsInput | string | null
@@ -4589,6 +4612,7 @@ export namespace Prisma {
     title: string
     description?: string | null
     jql: string
+    type?: string
     columns?: string | null
     sortBy?: string | null
     sortOrder?: string | null
@@ -4602,6 +4626,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     jql?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
     columns?: NullableStringFieldUpdateOperationsInput | string | null
     sortBy?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: NullableStringFieldUpdateOperationsInput | string | null
@@ -4615,6 +4640,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     jql?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
     columns?: NullableStringFieldUpdateOperationsInput | string | null
     sortBy?: NullableStringFieldUpdateOperationsInput | string | null
     sortOrder?: NullableStringFieldUpdateOperationsInput | string | null
@@ -4788,6 +4814,7 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     jql?: SortOrder
+    type?: SortOrder
     columns?: SortOrder
     sortBy?: SortOrder
     sortOrder?: SortOrder
@@ -4801,6 +4828,7 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     jql?: SortOrder
+    type?: SortOrder
     columns?: SortOrder
     sortBy?: SortOrder
     sortOrder?: SortOrder
@@ -4814,6 +4842,7 @@ export namespace Prisma {
     title?: SortOrder
     description?: SortOrder
     jql?: SortOrder
+    type?: SortOrder
     columns?: SortOrder
     sortBy?: SortOrder
     sortOrder?: SortOrder

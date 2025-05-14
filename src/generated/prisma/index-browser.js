@@ -139,6 +139,7 @@ exports.Prisma.JiraPageConfigScalarFieldEnum = {
   title: 'title',
   description: 'description',
   jql: 'jql',
+  type: 'type',
   columns: 'columns',
   sortBy: 'sortBy',
   sortOrder: 'sortOrder',

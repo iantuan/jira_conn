@@ -12,6 +12,7 @@ import { JiraIssue } from '@/types/jira';
 import { formatDistanceToNow } from 'date-fns';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
+import React from 'react';
 
 // 定義可排序的欄位
 type SortField = 'key' | 'summary' | 'status' | 'assignee' | 'priority' | 'updated';
@@ -38,6 +39,8 @@ export default function DashboardPage() {
   const [startAt, setStartAt] = useState(0);
   const issuesPerPage = 20;
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'updated', order: 'desc' });
+  const [expandedEpics, setExpandedEpics] = useState<Set<string>>(new Set());
+  const [epicChildren, setEpicChildren] = useState<Record<string, JiraIssue[]>>({});
 
   useEffect(() => {
     if (pageIdFromUrl && pageIdFromUrl !== currentPageId) {
@@ -104,6 +107,54 @@ export default function DashboardPage() {
       order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
     }));
     setStartAt(0); // Reset to first page when sorting changes
+  };
+
+  // Function to fetch epic children
+  const fetchEpicChildren = async (epicKey: string) => {
+    try {
+      const response = await fetch('/api/jira', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          targetEndpoint: '/rest/api/2/search',
+          jiraApiMethod: 'POST',
+          jiraApiBody: {
+            jql: `"Epic Link" = ${epicKey}`,
+            fields: ["summary", "status", "assignee", "reporter", "priority", "issuetype", "created", "updated", "project"],
+            expand: ["renderedFields", "names", "schema"],
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch epic children');
+      }
+
+      const data = await response.json();
+      return data.issues || [];
+    } catch (error) {
+      console.error('Error fetching epic children:', error);
+      return [];
+    }
+  };
+
+  // Function to handle epic expansion
+  const handleEpicExpand = async (epicKey: string) => {
+    if (expandedEpics.has(epicKey)) {
+      setExpandedEpics(prev => {
+        const next = new Set(prev);
+        next.delete(epicKey);
+        return next;
+      });
+    } else {
+      setExpandedEpics(prev => new Set(prev).add(epicKey));
+      if (!epicChildren[epicKey]) {
+        const children = await fetchEpicChildren(epicKey);
+        setEpicChildren(prev => ({ ...prev, [epicKey]: children }));
+      }
+    }
   };
 
   // Show loading if jiraPages are loading and no page is selected yet, or if currentPageDetails is missing
@@ -176,6 +227,7 @@ export default function DashboardPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-gray-700/50">
               <tr>
+                {currentPageDetails.type === 'epic' && <th className="px-4 py-3 w-8"></th>}
                 {['Key', 'Summary', 'Status', 'Assignee', 'Priority', 'Updated'].map(header => (
                   <th key={header} className="px-4 py-3 font-medium text-gray-600 dark:text-gray-300 text-left whitespace-nowrap">{header}</th>
                 ))}
@@ -183,41 +235,103 @@ export default function DashboardPage() {
             </thead>
             <tbody className="divide-y divide-card-border">
               {data.issues.map((issue: JiraIssue) => (
-                <tr key={issue.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <Link href={`/dashboard/issue/${issue.key}`} className="flex items-center text-primary-color hover:underline">
-                      {issue.fields.issuetype?.iconUrl && <img src={issue.fields.issuetype.iconUrl} alt={issue.fields.issuetype.name || 'type'} className="w-4 h-4 mr-1.5 flex-shrink-0" />}
-                      {issue.key}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg truncate">
-                    <Link href={`/dashboard/issue/${issue.key}`} title={issue.fields.summary} className="hover:underline">
-                      {issue.fields.summary}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`status-badge ${getStatusClass(issue.fields.status?.statusCategory?.key, issue.fields.status?.name)}`}>
-                      {issue.fields.status?.name || 'N/A'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {issue.fields.assignee ? (
-                      <div className="flex items-center">
-                        {issue.fields.assignee.avatarUrls?.['24x24'] && <img src={issue.fields.assignee.avatarUrls['24x24']} alt={issue.fields.assignee.displayName} className="w-5 h-5 rounded-full mr-2 flex-shrink-0" />}
-                        <span className="truncate">{issue.fields.assignee.displayName}</span>
-                      </div>
-                    ) : <span className="text-gray-400 dark:text-gray-500">未指派</span>}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {issue.fields.priority ? (
-                      <div className="flex items-center">
-                        {typeof issue.fields.priority === 'object' && issue.fields.priority.iconUrl && <img src={issue.fields.priority.iconUrl} alt={issue.fields.priority.name || 'priority'} className="w-4 h-4 mr-1.5 flex-shrink-0"/>}
-                        <span>{typeof issue.fields.priority === 'object' ? issue.fields.priority.name : String(issue.fields.priority)}</span>
-                      </div>
-                    ) : <span className="text-gray-400 dark:text-gray-500">-</span>}
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">{issue.fields.updated ? formatDate(issue.fields.updated) : '-'}</td>
-                </tr>
+                <React.Fragment key={issue.id}>
+                  <tr className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                    {currentPageDetails.type === 'epic' && (
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <button
+                          onClick={() => handleEpicExpand(issue.key)}
+                          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        >
+                          {expandedEpics.has(issue.key) ? '▼' : '▶'}
+                        </button>
+                      </td>
+                    )}
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <Link href={`/dashboard/issue/${issue.key}`} className="flex items-center text-primary-color hover:underline">
+                        {issue.fields.issuetype?.iconUrl && <img src={issue.fields.issuetype.iconUrl} alt={issue.fields.issuetype.name || 'type'} className="w-4 h-4 mr-1.5 flex-shrink-0" />}
+                        {issue.key}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg truncate">
+                      <Link href={`/dashboard/issue/${issue.key}`} title={issue.fields.summary} className="hover:underline">
+                        {issue.fields.summary}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`status-badge ${getStatusClass(issue.fields.status?.statusCategory?.key, issue.fields.status?.name)}`}>
+                        {issue.fields.status?.name || 'N/A'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {issue.fields.assignee ? (
+                        <div className="flex items-center">
+                          {issue.fields.assignee.avatarUrls?.['24x24'] && (
+                            <img src={issue.fields.assignee.avatarUrls['24x24']} alt="" className="w-5 h-5 rounded-full mr-1.5" />
+                          )}
+                          <span>{issue.fields.assignee.displayName}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 italic">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      {issue.fields.priority && (
+                        <div className="flex items-center">
+                          {typeof issue.fields.priority === 'object' && issue.fields.priority.iconUrl && (
+                            <img src={issue.fields.priority.iconUrl} alt="" className="w-4 h-4 mr-1" />
+                          )}
+                          <span>{typeof issue.fields.priority === 'object' ? issue.fields.priority.name : issue.fields.priority}</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">{issue.fields.updated ? formatDate(issue.fields.updated) : '-'}</td>
+                  </tr>
+                  {currentPageDetails.type === 'epic' && expandedEpics.has(issue.key) && epicChildren[issue.key]?.map((child: JiraIssue) => (
+                    <tr key={child.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors bg-gray-50/50 dark:bg-gray-800/50">
+                      <td className="px-4 py-3"></td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <Link href={`/dashboard/issue/${child.key}`} className="flex items-center text-primary-color hover:underline">
+                          {child.fields.issuetype?.iconUrl && <img src={child.fields.issuetype.iconUrl} alt={child.fields.issuetype.name || 'type'} className="w-4 h-4 mr-1.5 flex-shrink-0" />}
+                          {child.key}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg truncate">
+                        <Link href={`/dashboard/issue/${child.key}`} title={child.fields.summary} className="hover:underline">
+                          {child.fields.summary}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className={`status-badge ${getStatusClass(child.fields.status?.statusCategory?.key, child.fields.status?.name)}`}>
+                          {child.fields.status?.name || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {child.fields.assignee ? (
+                          <div className="flex items-center">
+                            {child.fields.assignee.avatarUrls?.['24x24'] && (
+                              <img src={child.fields.assignee.avatarUrls['24x24']} alt="" className="w-5 h-5 rounded-full mr-1.5" />
+                            )}
+                            <span>{child.fields.assignee.displayName}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 italic">Unassigned</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {child.fields.priority && (
+                          <div className="flex items-center">
+                            {typeof child.fields.priority === 'object' && child.fields.priority.iconUrl && (
+                              <img src={child.fields.priority.iconUrl} alt="" className="w-4 h-4 mr-1" />
+                            )}
+                            <span>{typeof child.fields.priority === 'object' ? child.fields.priority.name : child.fields.priority}</span>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">{child.fields.updated ? formatDate(child.fields.updated) : '-'}</td>
+                    </tr>
+                  ))}
+                </React.Fragment>
               ))}
             </tbody>
           </table>

@@ -52,20 +52,52 @@ export async function POST(request: NextRequest) {
     let finalJiraApiMethod: string;
     let finalJiraApiBody: any = jiraApiBody;
     let finalJiraApiParams: any = jiraApiParams;
+    let pageConfig: any = null;
 
     if (pageId) {
       // Mode 1: JQL Search via PageID (typically for dashboard lists)
       console.log(`(Proxy) Operating in Mode 1: JQL Search for pageId=${pageId}`);
-      const pageConfig = await prisma.jiraPageConfig.findUnique({
+      pageConfig = await prisma.jiraPageConfig.findUnique({
         where: { id: pageId as string },
       });
       if (!pageConfig || !pageConfig.jql) {
         return NextResponse.json({ message: `Page configuration or JQL not found for pageId: ${pageId}` }, { status: 404 });
       }
+      
+      console.log("(Proxy Debug) Page config:", {
+        id: pageConfig.id,
+        title: pageConfig.title,
+        type: pageConfig.type,
+        originalJql: pageConfig.jql
+      });
+
       finalTargetEndpoint = '/rest/api/2/search';
       finalJiraApiMethod = 'POST';
+      
+      // Build the base JQL query
+      let baseJql = pageConfig.jql.trim();
+      
+      // Remove any existing ORDER BY clause
+      const orderByMatch = baseJql.match(/\s+ORDER\s+BY\s+.*$/i);
+      let orderByClause = '';
+      if (orderByMatch) {
+        orderByClause = orderByMatch[0];
+        baseJql = baseJql.replace(/\s+ORDER\s+BY\s+.*$/i, '').trim();
+      }
+      
+      if (pageConfig.type === 'epic') {
+        // Add Epic filter to the beginning of the JQL to ensure proper pagination
+        baseJql = `issuetype = Epic AND (${baseJql})`;
+        console.log("(Proxy Debug) Page type is epic, adding Epic filter. Base JQL:", baseJql);
+      }
+      
+      // Add back the ORDER BY clause if it existed
+      if (orderByClause) {
+        baseJql = `${baseJql} ${orderByClause}`;
+      }
+      
       finalJiraApiBody = {
-        jql: pageConfig.jql.trim(),
+        jql: baseJql,
         startAt: startAt,
         maxResults: maxResults,
         fields: ["summary", "status", "assignee", "reporter", "priority", "issuetype", "created", "updated", "project"],
@@ -87,14 +119,17 @@ export async function POST(request: NextRequest) {
         const jiraSortField = sortFieldMap[sortField];
         if (jiraSortField) {
           // Remove any existing ORDER BY clause
-          let jql = pageConfig.jql.trim();
+          let jql = finalJiraApiBody.jql;
           jql = jql.replace(/\s+ORDER\s+BY\s+.*$/i, '');
           
           // Add the new ORDER BY clause
           jql = `${jql} ORDER BY ${jiraSortField} ${sortOrder || 'desc'}`;
           finalJiraApiBody.jql = jql;
+          console.log("(Proxy Debug) After adding sort, final JQL:", jql);
         }
       }
+
+      console.log("(Proxy Debug) Final API request body:", JSON.stringify(finalJiraApiBody, null, 2));
 
       console.log(`(Proxy) JQL for search: ${finalJiraApiBody.jql}`);
       if (sortField) {
@@ -171,6 +206,17 @@ export async function POST(request: NextRequest) {
     try {
       const responseData = responseText ? JSON.parse(responseText) : {}; // Handle empty or non-JSON responses gracefully
       console.log("(Proxy Debug) Successful Jira API Response (status ${jiraApiResponse.status}, length ${responseText.length})");
+      
+      // Filter issues if page type is epic
+      if (pageId && pageConfig?.type === 'epic' && responseData.issues) {
+        const originalCount = responseData.issues.length;
+        responseData.issues = responseData.issues.filter((issue: any) => 
+          issue.fields.issuetype.name === 'Epic'
+        );
+        // Don't modify total here as it affects pagination
+        console.log(`(Proxy Debug) Filtered Epic issues: ${originalCount} -> ${responseData.issues.length}`);
+      }
+      
       if (responseText.length > 0 && responseText.length < 500) { // Log small JSON responses
         console.log("(Proxy Debug) Response data:", JSON.stringify(responseData, null, 2));
       }
@@ -198,4 +244,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
