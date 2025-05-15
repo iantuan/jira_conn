@@ -19,6 +19,8 @@ A customizable Jira dashboard that allows you to create multiple pages with diff
 
 ### Installation
 
+#### Method 1: Local Development
+
 1. Clone the repository
 2. Install dependencies:
 
@@ -33,6 +35,62 @@ npm run dev
 ```
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+#### Method 2: Using Docker (Recommended for Production)
+
+##### Prerequisites
+- Docker and Docker Compose installed on your system
+
+##### Using Docker Compose (recommended)
+
+1. **重要**: 在 `docker-compose.yml` 中設置安全的 `NEXTAUTH_SECRET`
+   ```yaml
+   environment:
+     - NEXTAUTH_SECRET=your-strong-secret-key-here  # 修改為安全的隨機字串
+   ```
+
+2. Build and start the container:
+   ```bash
+   docker compose up -d
+   ```
+
+3. View logs:
+   ```bash
+   docker compose logs -f
+   ```
+
+4. Stop the container:
+   ```bash
+   docker compose down
+   ```
+
+##### Using Docker Commands
+
+1. Build the Docker image:
+   ```bash
+   docker build -t jira_conn .
+   ```
+
+2. Run the container:
+   ```bash
+   docker run -d -p 3000:3000 \
+     -e NEXTAUTH_SECRET=your-strong-secret-key-here \
+     -e NEXTAUTH_URL=http://localhost:3000 \
+     -v jira_data:/app/data \
+     --name jira_conn jira_conn
+   ```
+
+##### Default Admin User
+
+The Docker container is initialized with a default administrator account:
+- Username: `administrator`
+- Password: `administrator`
+
+**Important**: For production use, it's recommended to change the default administrator password after first login.
+
+##### Database Persistence
+
+The database is stored in a Docker volume called `jira_data` to ensure data persistence across container restarts.
 
 ## Configuration
 
