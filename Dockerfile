@@ -63,7 +63,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/app/data/database.db
 # Ensure NEXTAUTH_SECRET is securely set in your actual environment, not hardcoded in plaintext for production.
 ENV NEXTAUTH_SECRET="your-strong-secret-key-here"
-ENV NEXTAUTH_URL="http://localhost:3000"
+ENV NEXTAUTH_URL="http://${SERVER_IP:-localhost}:3000"
 # NEXT_DEBUG is typically for development, consider removing for production if not needed.
 ENV NEXT_DEBUG=1
 # NEXT_SHARP_PATH specifies the location for Sharp, used by Next.js Image Optimization.

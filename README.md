@@ -49,17 +49,26 @@ npm run dev
      - NEXTAUTH_SECRET=your-strong-secret-key-here  # 修改為安全的隨機字串
    ```
 
-2. Build and start the container:
+2. 使用提供的腳本构建並啟動容器:
    ```bash
+   chmod +x run.sh
+   ./run.sh
+   ```
+   
+   此腳本將自動檢測您的服務器IP並設置環境變量，然後啟動容器。
+
+3. 或者手動設置SERVER_IP並啟動:
+   ```bash
+   export SERVER_IP=$(hostname -I | awk '{print $1}')
    docker compose up -d
    ```
 
-3. View logs:
+4. View logs:
    ```bash
    docker compose logs -f
    ```
 
-4. Stop the container:
+5. Stop the container:
    ```bash
    docker compose down
    ```
@@ -73,9 +82,13 @@ npm run dev
 
 2. Run the container:
    ```bash
+   # 設置服務器IP
+   export SERVER_IP=$(hostname -I | awk '{print $1}')
+   
    docker run -d -p 3000:3000 \
      -e NEXTAUTH_SECRET=your-strong-secret-key-here \
-     -e NEXTAUTH_URL=http://localhost:3000 \
+     -e NEXTAUTH_URL=http://${SERVER_IP}:3000 \
+     -e SERVER_IP=${SERVER_IP} \
      -v jira_data:/app/data \
      --name jira_conn jira_conn
    ```

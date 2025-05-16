@@ -15,7 +15,7 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=file:/app/data/database.db
       - NEXTAUTH_SECRET=your-strong-secret-key-here
-      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_URL=http://${SERVER_IP:-localhost}:3000
       - NEXT_DEBUG=1
       - NEXT_SHARP_PATH=/app/node_modules/sharp
       - NEXT_EXPERIMENTAL_REACT_OVERLAY=1
