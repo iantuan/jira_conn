@@ -41,4 +41,24 @@ fi
 
 # Start the Next.js app using standalone mode
 echo "Starting Next.js in standalone mode..."
-exec node .next/standalone/server.js 
+# Configure the PORT environment variable
+export PORT=3000
+# Start the Next.js app with the correct path to public folder
+# NODE_OPTIONS to increase memory limit if needed
+export NODE_OPTIONS="--max_old_space_size=4096"
+
+# Check where server.js is located and run it
+if [ -f "/app/server.js" ]; then
+  echo "Running server.js from /app"
+  cd /app && exec node server.js
+elif [ -f "/app/.next/standalone/server.js" ]; then
+  echo "Running server.js from /app/.next/standalone"
+  cd /app/.next/standalone && exec node server.js
+else
+  echo "ERROR: Cannot find server.js. Listing files in /app:"
+  ls -la /app
+  echo "Listing files in /app/.next (if exists):"
+  ls -la /app/.next || echo "/app/.next does not exist"
+  echo "Trying to run server.js anyway from /app"
+  cd /app && exec node server.js
+fi 

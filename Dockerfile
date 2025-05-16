@@ -44,7 +44,13 @@ RUN npx prisma generate --schema=./src/generated/prisma/schema.prisma
 ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node
 
 # Run the build. This should use the Prisma client from the copied node_modules.
+# Force production build to ensure proper asset optimization
+ENV NODE_ENV=production
 RUN npm run build
+
+# Debug: check what's in the .next directory
+RUN ls -la .next || echo ".next directory not found"
+RUN ls -la .next/standalone || echo ".next/standalone directory not found"
 
 # Verify the standalone output has the required files
 RUN ls -la .next/standalone/node_modules/.prisma/client || echo "Prisma client not found in standalone output"
@@ -75,7 +81,7 @@ COPY --from=builder /app/package*.json ./
 # CRITICAL: Copy the entire node_modules from 'deps' stage.
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copy built application AND source code from builder stage
+# Copy all files from .next (not just standalone) to ensure all assets are included
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/src ./src
@@ -84,8 +90,16 @@ COPY --from=builder /app/next.config.ts ./next.config.ts
 COPY --from=builder /app/entrypoint.sh ./entrypoint.sh
 
 # For standalone mode support
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Copy the standalone build output to the application root
+RUN if [ -d "./.next/standalone" ]; then \
+    echo "Copying standalone files to root"; \
+    cp -r ./.next/standalone/* ./; \
+    fi
+
+# Debug: Check what files ended up where
+RUN echo "Checking server.js in different locations"
+RUN ls -la /app/server.js || echo "No server.js in /app"
+RUN ls -la /app/.next/standalone/server.js || echo "No server.js in .next/standalone"
 
 # Force regenerate Prisma client in the runtime environment
 RUN npx prisma generate --schema=/app/src/generated/prisma/schema.prisma
