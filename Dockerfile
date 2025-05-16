@@ -1,75 +1,100 @@
 # Dockerfile for jira_conn
+
 # Multi-stage build for minimal image size
 
-# Build stage
-FROM node:20-alpine AS builder
-
+# Stage 1: Base image with Alpine Node.js
+FROM node:20-alpine AS base
 WORKDIR /app
 
-# Copy package files
-COPY package.json package-lock.json ./
-
-# Install dependencies
+# Stage 2: Install all dependencies and generate Prisma Client
+FROM base AS deps
+COPY package*.json ./
+# Copy the Prisma schema from the source directory.
+# Path is relative to the build context root.
+COPY src/generated/prisma/schema.prisma ./src/generated/prisma/schema.prisma
 RUN npm ci
+# Generate Prisma client. Schema path is relative to /app.
+# Output is defined in schema.prisma as ../../../node_modules/.prisma/client,
+# which resolves to /app/node_modules/.prisma/client from /app/src/generated/prisma/schema.prisma.
+RUN npx prisma generate --schema=./src/generated/prisma/schema.prisma
 
-# Copy the rest of the code
+# Stage 3: Build the Next.js application
+FROM base AS builder
+# Copy package.json for build scripts
+COPY package*.json ./
+
+# Ensure no pre-existing node_modules in this stage before copying
+RUN rm -rf ./node_modules
+
+# Copy the node_modules (including the Alpine-generated Prisma client) from 'deps' stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy the rest of the application source code (respects .dockerignore)
 COPY . .
 
-# Set environment variables for build
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NEXTAUTH_SECRET=your-nextauth-secret-for-docker-build
-ENV NEXTAUTH_URL=http://localhost:3000
-ENV DATABASE_URL=file:/app/prisma/dev.db
+# AGGRESSIVE CLEANUP of any potential rogue Prisma client before build
+RUN rm -rf ./src/generated/prisma/node_modules # If schema output was ever different
+RUN rm -rf ./node_modules/.prisma/client/* # Clear out the client dir just before generate, to be sure
 
-# Enable verbose mode for better debugging
-ENV NEXT_DEBUG=1
+# Re-generate the client INSIDE THE BUILDER STAGE using the copied node_modules and local schema.
+# This ensures the client used by `npm run build` is fresh and built in this exact context.
+RUN npx prisma generate --schema=./src/generated/prisma/schema.prisma
 
-# Generate Prisma client
-RUN npx prisma generate
+# Add this env var to help with debugging
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node
 
-# Build the Next.js app with verbose output and skip type checking
-RUN set -x && \
-    echo "Starting Next.js build..." && \
-    npm run build || \
-    (echo "=======================" && \
-     echo "Next.js build failed with error above" && \
-     echo "Check TypeScript errors carefully" && \
-     echo "=======================" && \
-     exit 1)
+# Run the build. This should use the Prisma client from the copied node_modules.
+RUN npm run build
 
-# Production stage
+# Verify the standalone output has the required files
+RUN ls -la .next/standalone/node_modules/.prisma/client || echo "Prisma client not found in standalone output"
+
+# Stage 4: Final production image
 FROM node:20-alpine AS runner
-
 WORKDIR /app
-
-# Set environment variables
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=file:/app/data/database.db
-ENV NEXTAUTH_SECRET=your-nextauth-secret-for-production
-ENV NEXTAUTH_URL=http://localhost:3000
+# Ensure NEXTAUTH_SECRET is securely set in your actual environment, not hardcoded in plaintext for production.
+ENV NEXTAUTH_SECRET="your-strong-secret-key-here"
+ENV NEXTAUTH_URL="http://localhost:3000"
+# NEXT_DEBUG is typically for development, consider removing for production if not needed.
+ENV NEXT_DEBUG=1
+# NEXT_SHARP_PATH specifies the location for Sharp, used by Next.js Image Optimization.
+ENV NEXT_SHARP_PATH=/app/node_modules/sharp
+# NEXT_EXPERIMENTAL_REACT_OVERLAY is a development tool.
+ENV NEXT_EXPERIMENTAL_REACT_OVERLAY=1
+# Help Prisma find the query engine
+ENV PRISMA_QUERY_ENGINE_LIBRARY=/app/node_modules/.prisma/client/libquery_engine-linux-musl-openssl-3.0.x.so.node
 
-# Create directory for the database
 RUN mkdir -p /app/data
 
-# Install only production dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --only=production
+# Copy necessary files for production runtime
+COPY --from=builder /app/package*.json ./
 
-# Copy necessary files from build stage
+# CRITICAL: Copy the entire node_modules from 'deps' stage.
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy built application AND source code from builder stage
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/src ./src
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/src/generated ./src/generated
-COPY --from=builder /app/next.config.ts ./
+COPY --from=builder /app/next.config.ts ./next.config.ts
+COPY --from=builder /app/entrypoint.sh ./entrypoint.sh
 
-# Copy and set up the entrypoint script
-COPY entrypoint.sh /app/
-RUN chmod +x /app/entrypoint.sh
+# For standalone mode support
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
 
-# Expose the port
+# Force regenerate Prisma client in the runtime environment
+RUN npx prisma generate --schema=/app/src/generated/prisma/schema.prisma
+
+# Copy the Prisma engine files to the standalone directory structure
+RUN mkdir -p ./.next/standalone/node_modules/.prisma/client/
+RUN cp -r /app/node_modules/.prisma/client/* ./.next/standalone/node_modules/.prisma/client/
+
+RUN chmod +x ./entrypoint.sh
+
 EXPOSE 3000
-
-# Set the entrypoint
-ENTRYPOINT ["/app/entrypoint.sh"] 
+ENTRYPOINT ["./entrypoint.sh"]
