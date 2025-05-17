@@ -3,11 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node scripts/init-db.js && next dev",
     "build": "next build --no-lint",
     "start": "next start",
     "lint": "next lint",
-    "prisma:seed": "npx prisma db seed"
+    "prisma:seed": "npx prisma db seed",
+    "init-db": "node scripts/init-db.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
@@ -41,5 +42,8 @@
     "prisma": "^6.7.0",
     "ts-node": "^10.9.2",
     "typescript": "^5"
+  },
+  "prisma": {
+    "schema": "src/generated/prisma/schema.prisma"
   }
 }

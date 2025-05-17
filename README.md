@@ -28,13 +28,29 @@ A customizable Jira dashboard that allows you to create multiple pages with diff
 npm install
 ```
 
-3. Start the development server:
+3. 創建.env文件在項目根目錄（或複製.env.example）:
+
+```
+# 數據庫連接
+DATABASE_URL="file:./prisma/db/database.db"
+
+# NextAuth配置
+NEXTAUTH_SECRET="your-strong-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
+```
+
+4. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+初次運行時，系統會自動:
+- 創建prisma/db目錄
+- 初始化SQLite數據庫
+- 創建管理員用戶 (用戶名: administrator, 密碼: administrator)
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 #### Method 2: Using Docker (Recommended for Production)
 
