@@ -572,6 +572,12 @@ function DashboardContent() {
                   ref={ganttBodyLeftRef}
                   style={{ width: `${columnWidth}px`, position: 'relative' }}
                 >
+                  {/* 增加全高度的調整線，延伸至表格底部 */}
+                  <div 
+                    className={`gantt-table-resizer ${isResizing ? 'resizing' : ''}`}
+                    onMouseDown={handleMouseDown}
+                  ></div>
+                  
                   {rowsData.map((row, idx) => (
                     <div 
                       key={`${row.issue.id}-left-${idx}`} 

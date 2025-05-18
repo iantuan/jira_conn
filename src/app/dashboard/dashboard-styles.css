@@ -178,12 +178,27 @@
   z-index: 100;
 }
 
+/* Full height resizer that extends across the entire table */
+.gantt-table-resizer {
+  width: 10px;
+  position: absolute;
+  right: -5px; /* Half of width, to center it on the border */
+  top: 0;
+  bottom: 0; /* Extend to the bottom */
+  cursor: col-resize;
+  background-color: transparent;
+  z-index: 99; /* Just below the header resizer */
+}
+
 .gantt-resizer:hover,
-.gantt-resizer.resizing {
+.gantt-resizer.resizing,
+.gantt-table-resizer:hover,
+.gantt-table-resizer.resizing {
   background-color: rgba(59, 130, 246, 0.5);
 }
 
-.gantt-resizer::after {
+.gantt-resizer::after,
+.gantt-table-resizer::after {
   content: '';
   position: absolute;
   top: 0;
@@ -196,7 +211,9 @@
 }
 
 .gantt-resizer:hover::after,
-.gantt-resizer.resizing::after {
+.gantt-resizer.resizing::after,
+.gantt-table-resizer:hover::after,
+.gantt-table-resizer.resizing::after {
   opacity: 1;
 }
 
