@@ -53,7 +53,7 @@
 .gantt-table-header {
   display: flex;
   border-bottom: 1px solid #e5e7eb;
-  height: 40px;
+  height: 50px;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -87,12 +87,21 @@
 .gantt-timeline-header {
   flex-grow: 1;
   overflow-x: auto;
-  height: 40px;
+  height: 50px;
   position: relative;
 }
 
 .gantt-timeline-header::-webkit-scrollbar {
-  display: none; /* Hide scrollbar in Chrome/Safari/Webkit */
+  height: 8px;
+}
+
+.gantt-timeline-header::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 4px;
+}
+
+.gantt-timeline-header::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
 }
 
 .gantt-month {
@@ -104,6 +113,8 @@
   font-weight: 500;
   color: #4b5563;
   border-right: 1px solid #e5e7eb;
+  position: absolute;
+  top: 0;
 }
 
 .dark .gantt-month {
@@ -273,10 +284,5 @@
 
 .status-done {
   background-color: #48BB78;
-  color: white;
-}
-
-.status-blocked {
-  background-color: #F56565;
   color: white;
 } 
