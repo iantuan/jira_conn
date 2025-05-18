@@ -74,6 +74,14 @@ body {
     rgb(var(--background-start-rgb));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh; /* 確保body至少有視窗高度 */
+  height: 100vh; /* 固定高度為視窗高度 */
+  margin: 0; /* 移除默認margin */
+  padding: 0; /* 移除默認padding */
+}
+
+html {
+  height: 100%; /* 確保html元素佔滿高度 */
 }
 
 /* App Layout */
@@ -81,6 +89,8 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  height: 100vh; /* 確保容器佔據整個視窗高度 */
+  overflow: hidden; /* 防止整個容器出現滾動 */
 }
 
 .app-header {
@@ -117,23 +127,67 @@ body {
 .app-body {
   display: flex;
   flex: 1;
-  overflow: hidden; /* Prevent double scrollbars */
+  height: calc(100vh - 64px - 34px); /* 扣除頭部和底部的高度 */
+  overflow: hidden; /* 防止app-body自身出現滾動條 */
 }
 
 .app-sidebar {
   width: 240px; /* Standard sidebar width */
   background-color: rgb(var(--sidebar-bg));
-  border-right: 1px solid rgb(var(--header-border)); /* Use header-border for consistency */
+  border-right: 1px solid rgb(var(--header-border));
   flex-shrink: 0;
   overflow-y: auto;
+  overflow-x: hidden; /* 防止底部出現水平滾動條 */
   z-index: 10; /* 確保側邊欄在上層 */
+  position: relative; /* 為調整大小功能增加定位基礎 */
+  transition: width 0.1s ease-out; /* 平滑過渡寬度變化，但僅在非調整時 */
+  display: flex; /* 使用flex布局確保內容可以填滿整個高度 */
+  flex-direction: column; /* 垂直堆疊內容 */
+  height: 100%; /* 確保填滿整個高度 */
+}
+
+.app-sidebar.resizing {
+  transition: none; /* 調整大小時禁用過渡 */
+}
+
+.app-sidebar-resizer {
+  width: 8px;
+  cursor: col-resize;
   height: 100%;
+  position: absolute;
+  right: -4px;
+  top: 0;
+  background-color: transparent;
+  z-index: 20;
+}
+
+.app-sidebar-resizer:hover,
+.app-sidebar-resizer.resizing {
+  background-color: rgba(59, 130, 246, 0.5);
+}
+
+.app-sidebar-resizer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 4px;
+  width: 2px;
+  height: 100%;
+  background-color: rgba(59, 130, 246, 0.5);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.app-sidebar-resizer:hover::after,
+.app-sidebar-resizer.resizing::after {
+  opacity: 1;
 }
 
 .sidebar-menu {
   padding: 0.75rem;
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden; /* 防止底部出現水平滾動條 */
 }
 
 .sidebar-item {
@@ -204,9 +258,25 @@ body {
 
 .app-content {
   flex: 1;
-  padding: 1.5rem; /* Standard padding */
-  overflow-y: auto;
+  overflow-y: auto; /* 允許垂直滾動 */
+  overflow-x: hidden; /* 防止水平滾動 */
+  height: 100%; /* 填滿父容器高度 */
   background-color: rgb(var(--background-start-rgb));
+  padding: 1.5rem; /* Standard padding */
+}
+
+/* 基本的滾動條樣式 */
+.app-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.app-content::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 4px;
+}
+
+.app-content::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
 }
 
 .content-title {

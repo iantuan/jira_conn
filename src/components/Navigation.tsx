@@ -120,8 +120,8 @@ export function Navigation({ visible = true }: NavigationProps) {
 
   // 在根佈局中使用完整的側邊欄樣式
   const sidebarClass = pathname.startsWith('/dashboard') 
-    ? "sidebar-menu w-64 transition-all duration-300 ease-in-out" 
-    : "sidebar-menu";
+    ? "sidebar-menu w-full h-full transition-all duration-300 ease-in-out" 
+    : "sidebar-menu h-full";
   
   return (
     <nav className={sidebarClass}>
