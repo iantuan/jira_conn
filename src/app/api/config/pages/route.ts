@@ -15,7 +15,7 @@ const pageConfigSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   jql: z.string().min(1, "JQL query is required"),
-  type: z.enum(['issue', 'epic']).default('issue'),
+  type: z.enum(['issue', 'epic', 'gantt']).default('issue'),
   groupId: z.string().nullable().optional(),
   // columns, sortBy, sortOrder can be added if needed for backend storage
 });

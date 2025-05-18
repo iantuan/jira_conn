@@ -3,7 +3,7 @@ export interface JiraPage {
   title: string;
   description: string | null;
   jql: string;
-  type: 'issue' | 'epic';
+  type: 'issue' | 'epic' | 'gantt';
   columns: string | null;
   sortBy: string | null;
   sortOrder: string | null;

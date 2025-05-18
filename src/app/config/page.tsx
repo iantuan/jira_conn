@@ -48,7 +48,7 @@ const PageConfigFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().optional(),
   jql: z.string().min(1, "JQL query is required"),
-  type: z.enum(['issue', 'epic']).default('issue'),
+  type: z.enum(['issue', 'epic', 'gantt']).default('issue'),
   groupId: z.string().nullable().optional(),
 });
 type PageConfigFormValues = z.infer<typeof PageConfigFormSchema>;
@@ -543,7 +543,7 @@ export default function ConfigPage() {
                       <div className="flex items-center">
                         <h3 className="font-semibold text-gray-800 dark:text-gray-100">{page.title}</h3>
                         <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                          {page.type === 'epic' ? 'Epic' : 'Issue'}
+                          {page.type === 'epic' ? 'Epic' : page.type === 'gantt' ? '甘特圖' : 'Issue'}
                         </span>
                         {groupName && (
                           <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
@@ -594,9 +594,12 @@ export default function ConfigPage() {
                 >
                   <option value="issue">一般問題列表</option>
                   <option value="epic">Epic 與子任務</option>
+                  <option value="gantt">甘特圖</option>
                 </select>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                  {watchPageConfig("type") === 'epic' ? '選擇此類型將顯示 Epic 及其子任務，並支持展開/收起功能。' : '選擇此類型將顯示一般的問題列表。'}
+                  {watchPageConfig("type") === 'epic' ? '選擇此類型將顯示 Epic 及其子任務，並支持展開/收起功能。' : 
+                   watchPageConfig("type") === 'gantt' ? '選擇此類型將以甘特圖方式顯示 Epic 及其子任務，預設Epic是不展開子任務的。' :
+                   '選擇此類型將顯示一般的問題列表。'}
                 </p>
               </div>
               <div>

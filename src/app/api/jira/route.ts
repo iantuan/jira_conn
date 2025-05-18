@@ -45,7 +45,8 @@ export async function POST(request: NextRequest) {
       jiraApiParams,  
       jiraApiBody,
       sortField,
-      sortOrder     
+      sortOrder,
+      filterType
     } = clientPayload;
 
     let finalTargetEndpoint: string;
@@ -85,10 +86,11 @@ export async function POST(request: NextRequest) {
         baseJql = baseJql.replace(/\s+ORDER\s+BY\s+.*$/i, '').trim();
       }
       
-      if (pageConfig.type === 'epic') {
+      // Filter by issue type for Epic or Gantt views
+      if (pageConfig.type === 'epic' || pageConfig.type === 'gantt' || filterType === 'epic') {
         // Add Epic filter to the beginning of the JQL to ensure proper pagination
         baseJql = `issuetype = Epic AND (${baseJql})`;
-        console.log("(Proxy Debug) Page type is epic, adding Epic filter. Base JQL:", baseJql);
+        console.log(`(Proxy Debug) Page type is ${pageConfig.type}, adding Epic filter. Base JQL:`, baseJql);
       }
       
       // Add back the ORDER BY clause if it existed
@@ -100,7 +102,19 @@ export async function POST(request: NextRequest) {
         jql: baseJql,
         startAt: startAt,
         maxResults: maxResults,
-        fields: ["summary", "status", "assignee", "reporter", "priority", "issuetype", "created", "updated", "project"],
+        fields: [
+          "summary", 
+          "status", 
+          "assignee", 
+          "reporter", 
+          "priority", 
+          "issuetype", 
+          "created", 
+          "updated", 
+          "project",
+          "duedate",          // Standard Jira due date field
+          "customfield_10015" // Start date field - may need to be adjusted based on your Jira instance
+        ],
         expand: ["renderedFields", "names", "schema"],
         fieldsByKeys: false,
       };

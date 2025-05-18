@@ -126,10 +126,14 @@ body {
   border-right: 1px solid rgb(var(--header-border)); /* Use header-border for consistency */
   flex-shrink: 0;
   overflow-y: auto;
+  z-index: 10; /* 確保側邊欄在上層 */
+  height: 100%;
 }
 
 .sidebar-menu {
   padding: 0.75rem;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .sidebar-item {
@@ -266,8 +270,14 @@ body {
   
   .app-sidebar {
     width: 100%;
+    height: auto;
+    max-height: 300px;
     border-right: none;
     border-bottom: 1px solid rgb(var(--header-border));
+  }
+
+  .sidebar-menu {
+    padding: 0.5rem;
   }
 
   .app-search {
@@ -331,4 +341,12 @@ body {
 }
 .btn-danger:hover {
   background-color: rgb(185, 28, 28); /* Slightly darker red */
+}
+
+/* 添加新的儀表板樣式 */
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }

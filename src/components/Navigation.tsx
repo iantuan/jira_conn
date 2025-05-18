@@ -16,39 +16,78 @@ const GroupIcon = () => <svg className="sidebar-icon" viewBox="0 0 20 20" fill="
 const CollapseIcon = () => <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>;
 const ExpandIcon = () => <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>;
 
-export function Navigation() {
+interface NavigationProps {
+  visible?: boolean;
+}
+
+export function Navigation({ visible = true }: NavigationProps) {
   const pathname = usePathname();
   const [currentPageId, setCurrentPageId] = useAtom(currentPageIdAtom);
   
-  // Use SWR hooks to fetch page configurations and groups
-  const { pages: jiraApiPages, isLoadingPages, isErrorPages } = useJiraPageConfigs();
-  const { groups: jiraApiGroups, isLoading: isLoadingGroups, isError: isErrorGroups } = useJiraPageGroups();
+  // Direct fetch from API rather than using SWR hooks
+  const [pages, setPages] = useState<JiraPageConfig[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   
-  const [_, setJiraPagesApiAtom] = useAtom(jiraPagesApiAtom);
-  const [__, setJiraPageGroupsApiAtom] = useAtom(jiraPageGroupsApiAtom);
+  // Manual fetch instead of using SWR
+  useEffect(() => {
+    setLoading(true);
+    const fetchData = async () => {
+      try {
+        // Fetch pages
+        const pagesRes = await fetch('/api/config/pages');
+        if (!pagesRes.ok) throw new Error('Failed to fetch pages: ' + pagesRes.statusText);
+        const pagesText = await pagesRes.text();
+        
+        try {
+          const pagesData = JSON.parse(pagesText);
+          console.log('Pages API response:', pagesData);
+          setPages(Array.isArray(pagesData) ? pagesData : []);
+        } catch (jsonError) {
+          console.error('Error parsing pages JSON:', jsonError, pagesText);
+          throw new Error('Invalid JSON in pages response');
+        }
+        
+        // Fetch groups
+        const groupsRes = await fetch('/api/config/groups');
+        if (!groupsRes.ok) throw new Error('Failed to fetch groups: ' + groupsRes.statusText);
+        const groupsText = await groupsRes.text();
+        
+        try {
+          const groupsData = JSON.parse(groupsText);
+          console.log('Groups API response:', groupsData);
+          setGroups(Array.isArray(groupsData) ? groupsData : []);
+        } catch (jsonError) {
+          console.error('Error parsing groups JSON:', jsonError, groupsText);
+          throw new Error('Invalid JSON in groups response');
+        }
+        
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching navigation data:', err);
+        setError(err instanceof Error ? err : new Error(String(err)));
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, []);
   
   // State to track expanded/collapsed groups
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
-  // Sync SWR data to Jotai atoms
   useEffect(() => {
-    if (jiraApiPages) {
-      setJiraPagesApiAtom(jiraApiPages);
-    }
-  }, [jiraApiPages, setJiraPagesApiAtom]);
-  
-  useEffect(() => {
-    if (jiraApiGroups) {
-      setJiraPageGroupsApiAtom(jiraApiGroups);
-      
+    if (groups.length > 0) {
       // Initialize all groups as expanded by default
       const initialExpandState: Record<string, boolean> = {};
-      jiraApiGroups.forEach(group => {
+      groups.forEach(group => {
         initialExpandState[group.id] = true;
       });
       setExpandedGroups(prev => ({...prev, ...initialExpandState}));
     }
-  }, [jiraApiGroups, setJiraPageGroupsApiAtom]);
+  }, [groups]);
 
   const handlePageLinkClick = (pageId: string) => {
     setCurrentPageId(pageId);
@@ -62,10 +101,10 @@ export function Navigation() {
   };
   
   // Organize pages by their groups
-  const ungroupedPages = jiraApiPages?.filter(page => !page.groupId) || [];
+  const ungroupedPages = pages.filter(page => !page.groupId) || [];
   const groupedPagesMap: Record<string, JiraPageConfig[]> = {};
   
-  jiraApiPages?.forEach(page => {
+  pages.forEach(page => {
     if (page.groupId) {
       if (!groupedPagesMap[page.groupId]) {
         groupedPagesMap[page.groupId] = [];
@@ -74,8 +113,18 @@ export function Navigation() {
     }
   });
   
+  // 在儀表板中如果導航不可見，返回空的 div
+  if (pathname.startsWith('/dashboard') && !visible) {
+    return <div className="hidden"></div>;
+  }
+
+  // 在根佈局中使用完整的側邊欄樣式
+  const sidebarClass = pathname.startsWith('/dashboard') 
+    ? "sidebar-menu w-64 transition-all duration-300 ease-in-out" 
+    : "sidebar-menu";
+  
   return (
-    <nav className="sidebar-menu">
+    <nav className={sidebarClass}>
       <Link href="/" className={`sidebar-item ${pathname === '/' ? 'active' : ''}`}>
         <DashboardIcon />
         <span>儀表板</span>
@@ -85,20 +134,26 @@ export function Navigation() {
         <span>系統設定</span>
       </Link>
       
-      {(isLoadingPages || isLoadingGroups) && (
+      {loading && (
         <div className="sidebar-section-title pt-3">
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3 animate-pulse"></div>
         </div>
       )}
+      
+      {error && (
+        <div className="sidebar-section-title pt-3 text-red-500">
+          載入失敗 - {error.message}
+        </div>
+      )}
 
-      {!isLoadingPages && !isErrorPages && jiraApiPages && jiraApiPages.length > 0 && (
+      {!loading && !error && pages.length > 0 && (
         <div className="sidebar-section-title pt-3">
           自訂查詢
         </div>
       )}
       
       {/* Render groups with their pages */}
-      {!isLoadingGroups && !isErrorGroups && jiraApiGroups?.map(group => (
+      {!loading && !error && groups.map(group => (
         <div key={group.id} className="mb-2">
           <button 
             className="sidebar-group-header flex items-center justify-between w-full px-3 py-1.5 text-sm font-medium text-left text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
@@ -123,7 +178,7 @@ export function Navigation() {
               <PageIcon />
               <span className="truncate" title={page.title}>{page.title}</span>
               <span className="ml-1 text-xs opacity-60">
-                {page.type === 'epic' ? 'Epic' : 'Issue'}
+                {page.type === 'epic' ? 'Epic' : page.type === 'gantt' ? 'Gantt' : 'Issue'}
               </span>
             </Link>
           ))}
@@ -137,7 +192,7 @@ export function Navigation() {
       ))}
       
       {/* Render ungrouped pages */}
-      {!isLoadingPages && !isErrorPages && ungroupedPages.map(page => (
+      {!loading && !error && ungroupedPages.map(page => (
         <Link 
           key={page.id}
           href={`/dashboard?pageId=${page.id}`}
@@ -147,14 +202,14 @@ export function Navigation() {
           <PageIcon />
           <span className="truncate" title={page.title}>{page.title}</span>
           <span className="ml-1 text-xs opacity-60">
-            {page.type === 'epic' ? 'Epic' : 'Issue'}
+            {page.type === 'epic' ? 'Epic' : page.type === 'gantt' ? 'Gantt' : 'Issue'}
           </span>
         </Link>
       ))}
 
-      {isErrorPages && (
-         <div className="sidebar-section-title pt-3 text-accent-color">
-          無法載入頁面
+      {!loading && !error && pages.length === 0 && (
+        <div className="pl-4 pr-2 py-3 text-sm text-gray-500 dark:text-gray-400">
+          尚未建立任何頁面
         </div>
       )}
     </nav>
