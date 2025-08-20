@@ -26,6 +26,7 @@ export default function IssuePage() {
   const [isFullDescriptionShown, setIsFullDescriptionShown] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ field: 'updated', order: 'desc' });
+  const [jiraBaseUrl, setJiraBaseUrl] = useState<string>('');
   
   useEffect(() => {
     if (issue) {
@@ -35,6 +36,25 @@ export default function IssuePage() {
       console.error("IssuePage: Error loading issue:", JSON.stringify(error, null, 2));
     }
   }, [issue, error]);
+
+  // Fetch Jira base URL for the "View in Jira" link
+  useEffect(() => {
+    const fetchJiraConfig = async () => {
+      try {
+        const response = await fetch('/api/config/jira-connection');
+        if (response.ok) {
+          const config = await response.json();
+          if (config.baseUrl) {
+            setJiraBaseUrl(config.baseUrl);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch Jira configuration:', error);
+      }
+    };
+    
+    fetchJiraConfig();
+  }, []);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
@@ -143,16 +163,36 @@ export default function IssuePage() {
   return (
     <div className="container mx-auto">
       {/* Header */}
-      <div className="py-4 px-4 mb-4 border-b flex justify-between items-center bg-white dark:bg-gray-800 shadow-sm">
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-          <Link href="/dashboard" className="text-primary-color hover:underline mr-2">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-          </Link>
-          Issue Details {key && <span className="font-mono text-xl ml-2 text-gray-500 dark:text-gray-400">({key})</span>}
-        </h1>
-        <button onClick={() => setShowDebug(!showDebug)} className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Toggle Debug Info">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-        </button>
+      <div className="py-4 px-4 mb-4 border-b bg-white dark:bg-gray-800 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+            <Link href="/dashboard" className="text-primary-color hover:underline mr-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+            </Link>
+            <span className="truncate">
+              Issue Details {key && <span className="font-mono text-xl ml-2 text-gray-500 dark:text-gray-400">({key})</span>}
+            </span>
+          </h1>
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            {jiraBaseUrl && key && (
+              <a 
+                href={`${jiraBaseUrl}/browse/${key}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors text-sm font-medium whitespace-nowrap"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                <span className="hidden sm:inline">View in Jira</span>
+                <span className="sm:hidden">Jira</span>
+              </a>
+            )}
+            <button onClick={() => setShowDebug(!showDebug)} className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700" aria-label="Toggle Debug Info">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+            </button>
+          </div>
+        </div>
       </div>
       
       <div className="px-4 mb-8">
