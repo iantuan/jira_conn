@@ -70,6 +70,7 @@ export interface JiraFields {
   };
   created: string;
   updated: string;
+  duedate?: string;
   description?: string;
   project?: {
     key: string;

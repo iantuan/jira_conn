@@ -9,13 +9,13 @@ import {
 } from '@/store/jiraStore';
 import Link from 'next/link';
 import { JiraIssue } from '@/types/jira';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import React from 'react';
 
 // 定義可排序的欄位
-type SortField = 'key' | 'summary' | 'status' | 'assignee' | 'priority' | 'updated';
+type SortField = 'key' | 'summary' | 'status' | 'assignee' | 'priority' | 'updated' | 'duedate';
 type SortOrder = 'asc' | 'desc';
 
 interface SortConfig {
@@ -259,7 +259,7 @@ function DashboardContent() {
 
   const formatDate = (dateString: string) => {
     try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true });
+      return format(new Date(dateString), 'MMM dd, yyyy');
     } catch (e) {
       console.warn("Error formatting date:", dateString, e);
       return dateString;
@@ -724,7 +724,7 @@ function DashboardContent() {
             <thead className="bg-gray-50 dark:bg-gray-700/50">
               <tr>
                 {currentPageDetails.type === 'epic' && <th className="px-4 py-3 w-8"></th>}
-                {['Key', 'Summary', 'Status', 'Assignee', 'Priority', 'Updated'].map(header => (
+                {['Key', 'Summary', 'Status', 'Assignee', 'Priority', 'Due Date', 'Updated'].map(header => (
                   <th key={header} className="px-4 py-3 font-medium text-gray-600 dark:text-gray-300 text-left whitespace-nowrap">{header}</th>
                 ))}
               </tr>
@@ -781,6 +781,7 @@ function DashboardContent() {
                         </div>
                       )}
                     </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">{issue.fields.duedate ? formatDate(issue.fields.duedate) : '-'}</td>
                     <td className="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">{issue.fields.updated ? formatDate(issue.fields.updated) : '-'}</td>
                   </tr>
                   {currentPageDetails.type === 'epic' && expandedEpics.has(issue.key) && epicChildren[issue.key]?.map((child: JiraIssue) => (
@@ -824,6 +825,7 @@ function DashboardContent() {
                           </div>
                         )}
                       </td>
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">{child.fields.duedate ? formatDate(child.fields.duedate) : '-'}</td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500 dark:text-gray-400">{child.fields.updated ? formatDate(child.fields.updated) : '-'}</td>
                     </tr>
                   ))}
@@ -896,6 +898,7 @@ function DashboardContent() {
                   <option value="status">Status</option>
                   <option value="assignee">Assignee</option>
                   <option value="priority">Priority</option>
+                  <option value="duedate">Due Date</option>
                   <option value="updated">Updated</option>
                 </select>
               </div>

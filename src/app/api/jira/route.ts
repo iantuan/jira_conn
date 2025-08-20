@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
           'status': 'status',
           'assignee': 'assignee',
           'priority': 'priority',
+          'duedate': 'duedate',
           'updated': 'updated'
         };
 

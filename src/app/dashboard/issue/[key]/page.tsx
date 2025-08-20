@@ -262,6 +262,9 @@ export default function IssuePage() {
                   <div className="space-y-3 text-sm">
                     <div><div className="text-xs text-gray-500 dark:text-gray-400">Created:</div><div>{formatDate(fields.created)} <span className="text-gray-400">({formatTimeAgo(fields.created)})</span></div></div>
                     <div><div className="text-xs text-gray-500 dark:text-gray-400">Updated:</div><div>{formatDate(fields.updated)} <span className="text-gray-400">({formatTimeAgo(fields.updated)})</span></div></div>
+                    {fields.duedate && (
+                      <div><div className="text-xs text-gray-500 dark:text-gray-400">Due Date:</div><div>{formatDate(fields.duedate)} <span className="text-gray-400">({formatTimeAgo(fields.duedate)})</span></div></div>
+                    )}
                   </div>
                 </div>
                 <div className="jira-card p-4">
